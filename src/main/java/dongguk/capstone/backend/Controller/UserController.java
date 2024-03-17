@@ -5,13 +5,8 @@ import dongguk.capstone.backend.Repository.UserRepository;
 import dongguk.capstone.backend.Service.UserService;
 import dongguk.capstone.backend.domain.User;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController // 스프링 MVC 패턴에서 JSON 형식으로 데이터를 응답하기 위해 @Controller 대신 @RestController 사용
@@ -23,9 +18,6 @@ public class UserController {
 
     // ★ 정상인 경우와 비정상인 경우 모두 JSON 응답을 전송하는 방법은 ResponseEntity를 사용하는 것이다. ★
     // => 정상인 경우와 비정상인 경우 모두 처리하고 싶다면, ResponseEntity를 사용하자!
-
-
-    // postman으로 확인해보자
 
 
     @PostMapping("/user/signup")
@@ -43,7 +35,15 @@ public class UserController {
         return ResponseEntity.ok(userService.existsByEmail(email)); // ok의 괄호 안에 들어가는 것의 리턴값의 타입이 제너릭의 타입이어야 한다. (여기서는 Boolean 타입)
     }
 
+    // @RestController의 @ResponseBody가 "return하는 객체"를 응답 JSON으로 바꿔주는데,
+    // 그 JSON으로 바꿀 "객체"를 " Response'Entity' "를 통해 만들 수 있다.
+
     // 즉 정리하자면, HTTP 요청을
     // JSON 형식으로 받는다 => @RequestBody 사용
     // URL Path로부터 필요한 데이터를 얻는다 => @PathVariable 사용
+
+    //  ResponseEntity는 3개의 속성을 가진다!!
+    //  => msg : 응답 메시지
+    //     success : 요청의 성공 여부를 나타내는 boolean 값
+    //     data : API가 반환하는 데이터를 저장
 }

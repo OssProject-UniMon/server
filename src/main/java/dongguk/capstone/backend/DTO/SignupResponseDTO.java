@@ -10,4 +10,5 @@ public class SignupResponseDTO {
     private String email;
     private String name;
 
+
 }
