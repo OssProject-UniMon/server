@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="my_array">
+        <item>10분위</item>
+        <item>9분위</item>
+        <item>8분위</item>
+        <item>7분위</item>
+        <item>6분위</item>
+    </string-array>
+</resources>
