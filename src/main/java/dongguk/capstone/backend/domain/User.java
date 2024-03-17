@@ -14,7 +14,7 @@ public class User {
     private Long user_id;
 
     @Column(length = 100) // @Column은 DB의 컬럼(속성)과 필드의 변수가 매핑되게 해준다
-    private String name;
+    private String nickname;
 
     @Column(length = 100)
     private String email;

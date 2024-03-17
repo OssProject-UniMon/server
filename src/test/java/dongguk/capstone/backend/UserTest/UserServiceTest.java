@@ -1,6 +1,8 @@
 package dongguk.capstone.backend.UserTest;
 
 import dongguk.capstone.backend.DTO.SignupRequestDTO;
+import dongguk.capstone.backend.DTO.UserResponseDTO;
+import dongguk.capstone.backend.Repository.UserRepository;
 import dongguk.capstone.backend.Service.UserService;
 import dongguk.capstone.backend.domain.User;
 import org.assertj.core.api.Assertions;
@@ -15,6 +17,8 @@ public class UserServiceTest {
 
     @Autowired
     UserService userService;
+    @Autowired
+    UserRepository userRepository;
 
     @Test
     void signup(){
@@ -25,7 +29,7 @@ public class UserServiceTest {
         // when
         // 여기서 그냥 mmm을 넣으려고 할 때 existByEmail이 잘 실행되는지 확인..!
         userService.save(signupRequestDTO);
-        Boolean b = userService.existsByEmail("mmm");
+        Boolean b = userRepository.findByEmail("mmm@naver.com").isPresent();
 
         // then
         assertThat(b).isTrue();

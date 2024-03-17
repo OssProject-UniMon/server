@@ -19,7 +19,7 @@ public class UserService {
     public User save(SignupRequestDTO signupRequestDTO) { // 여기서 DTO가 아니라 user를 해야될 듯
         User user = new User();
         // 근데 여기에 if문으로 조건이 붙어야 되지 않을까? 예를 들어 이메일 확인 되면 이 밑에 애들이 진행되게끔..!
-        user.setName(signupRequestDTO.getName());
+        user.setNickname(signupRequestDTO.getNickname());
         user.setEmail(signupRequestDTO.getEmail());
         user.setPassword(signupRequestDTO.getPassword());
         user.setMajor(signupRequestDTO.getMajor());
@@ -34,9 +34,5 @@ public class UserService {
         // 그리고 뭐 하나라도 입력 안했을 때도 처리해야 됨!!!!
 
         return user;
-    }
-
-    public Boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
     }
 }
