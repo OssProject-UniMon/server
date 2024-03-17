@@ -33,6 +33,7 @@
         android:orientation="vertical">
 
         <EditText
+            android:id="@+id/email1"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             style="@style/AuthEditText"
@@ -47,6 +48,7 @@
         </LinearLayout>
 
         <EditText
+            android:id="@+id/password1"
             android:layout_width="match_parent"
             android:layout_height="55dp"
             style="@style/AuthEditText"
@@ -62,6 +64,7 @@
         </LinearLayout>
         
         <Button
+            android:id="@+id/login1"
             android:text="로그인하기"
             android:textColor="#ffffff"
             android:background="@drawable/background_radius"
