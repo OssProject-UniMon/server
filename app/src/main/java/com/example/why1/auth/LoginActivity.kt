@@ -26,7 +26,7 @@ class LoginActivity : AppCompatActivity() {
             val inputpass = editpass.text.toString()
             System.out.println(inputemail)
             System.out.println(inputpass)
-            ReadServerCode()
+            ReadServerCode(inputemail,inputpass)
 
             if (servercode == 1){
                 val intent = Intent(this, MainActivity::class.java)
@@ -39,9 +39,10 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun ReadServerCode() {
+    fun ReadServerCode(email : String , password : String ):Int {
         // 서버코드를 랜덤하게 계산 ... 테스트용
         val random = (0..1).random()
         servercode = random
+        return servercode
     }
 }
