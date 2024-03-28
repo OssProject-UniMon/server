@@ -2,6 +2,7 @@ package com.example.why1.auth
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -11,6 +12,14 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.example.why1.R
 import com.example.why1.databinding.ActivityJoinBinding
+import com.example.why1.retropit.JoinRequest
+import com.example.why1.retropit.JoinResponse
+import com.example.why1.retropit.JoinService
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 
 class JoinActivity : AppCompatActivity() {
@@ -61,6 +70,13 @@ class JoinActivity : AppCompatActivity() {
             }
         }
 
+        //리트로핏 서버통신 구현
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://3030-210-94-220-228.ngrok-free.app")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        val JoinService = retrofit.create(JoinService::class.java)
+
         //회원가입 버튼 원클릭
         binding.registerBtn.setOnClickListener {
             //값 받아오기, 총 스트링 8개
@@ -70,17 +86,49 @@ class JoinActivity : AppCompatActivity() {
             val re_pass = binding.rePassword.text.toString() // 비번확인
             val selected_gender = binding.rGroup.checkedRadioButtonId
             val gender_semi = findViewById<RadioButton>(selected_gender)
-            val gender = gender_semi.text.toString() // 성별선택값
-            val scholar = "동국대 인재 장학금(임시값)"
+            val gender = gender_semi.text.toString() // 성별 선택 값
+            val scholar = "동국대 인재 장학금(임시값)" // 0,1로 선택하게 해야함! 일단 선택x 임시값 보내게 해둘게
             val major = binding.major.text.toString() //전공
+            val grade = 3.5 //임시값 ... 추가 시켜야함
             System.out.println(major)
 
             //case1 비밀번호 틀림
             if(re_pass != password){
                 Toast.makeText(applicationContext, "비밀번호를 다시한번 확인하세요", Toast.LENGTH_SHORT).show()
             }
-            servercode = Readservercode(nickname,email,password,gender,scholar,major,sp1_Result,sp2_Result)
+            else {
+                val call = JoinService.Register(
+                    JoinRequest(
+                        email,
+                        password,
+                        nickname,
+                        major,
+                        grade,
+                        gender,
+                        sp1_Result,
+                        1, //임시값
+                        sp2_Result
+                    )
+                )
+                call.enqueue(object : Callback<JoinResponse> {
+                    override fun onResponse(
+                        call: Call<JoinResponse>,
+                        response: Response<JoinResponse>
+                    ) {
+                        val result = response.body()?.serverCode
+                        if (result != null) {
+                            servercode = result //인트값 변환
+                        }
+                        Log.d("joinResult", "Response: $result")
+                        System.out.println(result)
+                    }
 
+                    override fun onFailure(call: Call<JoinResponse>, t: Throwable) {
+                        Log.e("joinError", "Error: ${t.message}")
+                    }
+                })
+            }
+            /* 이거는 서버 코드 잘 받아지면 쓰세요
             //case2 값 미입력
             if (servercode == 0){
                 Toast.makeText(applicationContext, "회원가입 실패", Toast.LENGTH_SHORT).show()
@@ -88,10 +136,20 @@ class JoinActivity : AppCompatActivity() {
             else if (servercode == 1){
                 Toast.makeText(applicationContext, "회원가입 성공!!", Toast.LENGTH_SHORT).show()
             }
+            else{
+                Toast.makeText(applicationContext, "통신오류...", Toast.LENGTH_SHORT).show()
+            }
+             */
 
         }
 
+        binding.btn2.setOnClickListener {
+            Toast.makeText(applicationContext, "이메일 처리중", Toast.LENGTH_SHORT).show()
+        }
+
     }
+
+
     fun Readservercode(name: String, email: String, pass: String, gender: String, scholar: String, major: String, rich: String, home: String): Int {
 
 
