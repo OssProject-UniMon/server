@@ -13,11 +13,17 @@ import com.example.why1.R
 import com.example.why1.retropit.LoginRequest
 import com.example.why1.retropit.LoginResponse
 import com.example.why1.retropit.ManageService
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 class LoginActivity : AppCompatActivity() {
 
@@ -30,9 +36,32 @@ class LoginActivity : AppCompatActivity() {
         val editpass = findViewById<EditText>(R.id.password1)
         val loginbtn = findViewById<Button>(R.id.login1)
 
+        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+            }
+
+            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+            }
+
+            override fun getAcceptedIssuers(): Array<X509Certificate> {
+                return emptyArray()
+            }
+        })
+
+        val sslContext = SSLContext.getInstance("SSL")
+        sslContext.init(null, trustAllCerts, SecureRandom())
+
+        val sslSocketFactory = sslContext.socketFactory
+
+        val okHttpClient = OkHttpClient.Builder()
+            .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
+
         //리트로핏 서버통신 구현
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://475b-122-42-81-30.ngrok-free.app")
+            .baseUrl("https://54.180.150.195:443")
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
