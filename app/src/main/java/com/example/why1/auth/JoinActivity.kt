@@ -12,9 +12,11 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.example.why1.R
 import com.example.why1.databinding.ActivityJoinBinding
+import com.example.why1.retropit.EmailResponse
 import com.example.why1.retropit.JoinRequest
 import com.example.why1.retropit.JoinResponse
 import com.example.why1.retropit.JoinService
+import com.example.why1.retropit.ManageService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -72,10 +74,11 @@ class JoinActivity : AppCompatActivity() {
 
         //리트로핏 서버통신 구현
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://3030-210-94-220-228.ngrok-free.app")
+            .baseUrl("https://475b-122-42-81-30.ngrok-free.app")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         val JoinService = retrofit.create(JoinService::class.java)
+        val Allservice = retrofit.create(ManageService::class.java)
 
         //회원가입 버튼 원클릭
         binding.registerBtn.setOnClickListener {
@@ -128,7 +131,7 @@ class JoinActivity : AppCompatActivity() {
                     }
                 })
             }
-            /* 이거는 서버 코드 잘 받아지면 쓰세요
+            /* 이거는 서버 코드 잘 받아지면 쓰세요 , 서버코드2는 빈칸 보냈을때
             //case2 값 미입력
             if (servercode == 0){
                 Toast.makeText(applicationContext, "회원가입 실패", Toast.LENGTH_SHORT).show()
@@ -144,7 +147,30 @@ class JoinActivity : AppCompatActivity() {
         }
 
         binding.btn2.setOnClickListener {
-            Toast.makeText(applicationContext, "이메일 처리중", Toast.LENGTH_SHORT).show()
+            val email = binding.inputemail.text.toString() // 이메일
+            val dynamicUrl = "/user/$email/check" // 동적으로 생성된 URL
+
+            val call = Allservice.emailresponse(dynamicUrl, email)
+            call.enqueue(object : Callback<EmailResponse> {
+                override fun onResponse(call: Call<EmailResponse>, response: Response<EmailResponse>) {
+                    if (response.isSuccessful) {
+                        val serverResponse = response.body()
+                        serverResponse?.let {
+                            val serverCode = it.serverCode
+                            Log.d("ServerCode", "Received server code: $serverCode")
+                            // 여기에서 서버코드에 따른 처리를 수행합니다.
+                        }
+                    } else {
+                        // 서버 응답이 실패한 경우
+                        Log.e("ServerResponse", "Failed to get server code. Error: ${response.message()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<EmailResponse>, t: Throwable) {
+                    // 네트워크 요청 자체가 실패한 경우
+                    Log.e("ServerRequest", "Failed to send request to server. Error: ${t.message}")
+                }
+            })
         }
 
     }

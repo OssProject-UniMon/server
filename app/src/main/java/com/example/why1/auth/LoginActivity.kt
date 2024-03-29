@@ -32,7 +32,7 @@ class LoginActivity : AppCompatActivity() {
 
         //리트로핏 서버통신 구현
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://3030-210-94-220-228.ngrok-free.app")
+            .baseUrl("https://475b-122-42-81-30.ngrok-free.app")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
