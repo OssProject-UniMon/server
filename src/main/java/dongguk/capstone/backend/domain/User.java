@@ -27,13 +27,13 @@ public class User {
 
     private double grade;
 
-    private int gender;
+    private String gender;
 
     // MySQL에서는 칼럼명을 Snake Case를 사용한다.
     // => incomeBracket과 scholarshipStatus는 MySQL에서 income_bracket, scholarship_status로 변환된다.
     // 이 때, @Column의 name을 통해 속성 이름에 맞게 설정할 수 있다.
     @Column(name = "income_bracket")
-    private int incomeBracket;
+    private String incomeBracket;
 
     @Column(name = "scholarship_status")
     private int scholarshipStatus;

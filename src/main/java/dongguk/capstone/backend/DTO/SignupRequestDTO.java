@@ -35,11 +35,11 @@ public class SignupRequestDTO {  // 회원 가입의 request DTO
 //    @NotBlank(message = "학점을 입력해주세요")
     private double grade; // 사용자 학점
 
-//    @NotBlank(message = "성별을 입력해주세요")
-    private int gender; // 사용자 성별, 남자 = 1 여자 = 2 이렇게 저장할 것
+    @NotBlank(message = "성별을 입력해주세요")
+    private String gender; // 사용자 성별, 남자 = 1 여자 = 2 이렇게 저장할 것
 
-//    @NotBlank(message = "소득 분위를 입력해주세요")
-    private int income_bracket; // 사용자 소득 분위
+    @NotBlank(message = "소득 분위를 입력해주세요")
+    private String income_bracket; // 사용자 소득 분위
 
 //    @NotBlank(message = "장학금 수혜 여부를 입력해주세요")
     private int scholarship_status; // 사용자 장학금 수혜 여부, 받으면 1 안받으면 0
