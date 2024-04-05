@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
+import com.example.why1.auth.NetworkConnection
 
 
 class JoinActivity : AppCompatActivity() {
@@ -78,35 +79,8 @@ class JoinActivity : AppCompatActivity() {
             }
         }
 
-        //리트로핏 security통신무시
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-            }
-
-            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-            }
-
-            override fun getAcceptedIssuers(): Array<X509Certificate> {
-                return emptyArray()
-            }
-        })
-
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-
-        val sslSocketFactory = sslContext.socketFactory
-
-        val okHttpClient = OkHttpClient.Builder()
-            .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
-            .build()
-
-        //리트로핏 서버통신 구현
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://54.180.150.195:443")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        val okHttpClient = NetworkConnection.createOkHttpClient()
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://54.180.150.195:443") //secure무시, 리트로핏 통신까지
         val JoinService = retrofit.create(JoinService::class.java)
         val Allservice = retrofit.create(ManageService::class.java)
 
@@ -149,8 +123,12 @@ class JoinActivity : AppCompatActivity() {
                         response: Response<JoinResponse>
                     ) {
                         val result = response.body()?.serverCode
-                        if (result != null) {
+                        if (result != null && result == 1) {
                             servercode = result //인트값 변환
+                            Toast.makeText(applicationContext, "회원가입 성공!!", Toast.LENGTH_SHORT).show()
+                        }
+                        else{
+                            Toast.makeText(applicationContext, "회원가입 실패", Toast.LENGTH_SHORT).show()
                         }
                         Log.d("joinResult", "Response: $result")
                         System.out.println(result)
@@ -161,18 +139,6 @@ class JoinActivity : AppCompatActivity() {
                     }
                 })
             }
-            /* 이거는 서버 코드 잘 받아지면 쓰세요 , 서버코드2는 빈칸 보냈을때
-            //case2 값 미입력
-            if (servercode == 0){
-                Toast.makeText(applicationContext, "회원가입 실패", Toast.LENGTH_SHORT).show()
-            }
-            else if (servercode == 1){
-                Toast.makeText(applicationContext, "회원가입 성공!!", Toast.LENGTH_SHORT).show()
-            }
-            else{
-                Toast.makeText(applicationContext, "통신오류...", Toast.LENGTH_SHORT).show()
-            }
-             */
 
         }
 
@@ -188,7 +154,7 @@ class JoinActivity : AppCompatActivity() {
                         serverResponse?.let {
                             val serverCode = it.serverCode
                             Log.d("ServerCode", "Received server code: $serverCode")
-                            // 여기에서 서버코드에 따른 처리를 수행합니다.
+                            // 여기에서 서버코드에 따른 처리를 수행
                         }
                     } else {
                         // 서버 응답이 실패한 경우

@@ -24,46 +24,21 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
+import com.example.why1.auth.NetworkConnection
 
 class LoginActivity : AppCompatActivity() {
 
-    private var servercode = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        var servercode = 0
 
         val editemail = findViewById<EditText>(R.id.email1)
         val editpass = findViewById<EditText>(R.id.password1)
         val loginbtn = findViewById<Button>(R.id.login1)
 
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-            }
-
-            override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-            }
-
-            override fun getAcceptedIssuers(): Array<X509Certificate> {
-                return emptyArray()
-            }
-        })
-
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-
-        val sslSocketFactory = sslContext.socketFactory
-
-        val okHttpClient = OkHttpClient.Builder()
-            .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
-            .build()
-
-        //리트로핏 서버통신 구현
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://54.180.150.195:443")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        val okHttpClient = NetworkConnection.createOkHttpClient()
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://54.180.150.195:443") //secure무시, 리트로핏 통신까지
 
         val TestService = retrofit.create(ManageService::class.java)
 
@@ -80,8 +55,14 @@ class LoginActivity : AppCompatActivity() {
                     val result = response.body()?.serverCode
                     Log.d("LoginResult", "Response: $result")
                     System.out.println(result)
-                    if (result != null) {
+                    if (result != null && result == 1) {
                         servercode = result
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        Toast.makeText(applicationContext, "로그인 성공!", Toast.LENGTH_SHORT).show()
+                        startActivity(intent)
+                    }
+                    else {
+                        Toast.makeText(applicationContext, "이메일과 비밀번호를 확인하세요", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -89,23 +70,8 @@ class LoginActivity : AppCompatActivity() {
                     Log.e("LoginError", "Error: ${t.message}")
                 }
             })
-
-            if (servercode == 1){
-                val intent = Intent(this, MainActivity::class.java)
-                Toast.makeText(applicationContext, "로그인 성공!", Toast.LENGTH_SHORT).show()
-                startActivity(intent)
-            }
-            else {
-                Toast.makeText(applicationContext, "이메일과 비밀번호를 확인하세요", Toast.LENGTH_SHORT).show()
-            }
-
+            System.out.println(servercode)
         }
     }
 
-    fun ReadServerCode(email : String , password : String ):Int {
-        // 서버코드를 랜덤하게 계산 ... 테스트용
-        val random = (0..1).random()
-        servercode = random
-        return servercode
-    }
 }
