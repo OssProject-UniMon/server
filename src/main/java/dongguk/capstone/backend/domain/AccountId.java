@@ -13,6 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Embeddable
 public class AccountId implements Serializable {
+
     @Column(name = "user_id")
     private Long userId;
 

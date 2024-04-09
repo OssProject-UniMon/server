@@ -110,6 +110,7 @@ public class AccountService {
         return accountLogsResponseDTO; // 사용자가 없거나 해당 사용자의 계좌가 없을 때, 즉 아무것도 없는 accountLogsResponseDTO가 반환된다.
     }
 
+
 //    public AccountLogsResponseDTO log(Long userId, AccountLogsRequestDTO accountLogsRequestDTO) {
 //        AccountLogsResponseDTO accountLogsResponseDTO = new AccountLogsResponseDTO();
 //        if(accountRepository.findById(userId).isPresent()){

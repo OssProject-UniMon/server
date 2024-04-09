@@ -11,7 +11,6 @@ import lombok.Setter;
 public class Account {
 
     // 엔티티의 기본 키가 복합 키인 경우이므로 findById 메서드를 사용할 수 없습니다.
-
     @EmbeddedId
     private AccountId id;
 
