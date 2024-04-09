@@ -10,25 +10,32 @@ import lombok.Setter;
 @Table(name = "account")
 public class Account {
 
-    // 엔티티의 기본 키가 복합 키인 경우이므로 findById 메서드를 사용할 수 없습니다.
-    @EmbeddedId
-    private AccountId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")
+    private Long userId;
 
-    @MapsId("userId") // 복합 키의 일부인 userId를 매핑합니다.
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
 
-    @Id
-    @Column(name = "bank_account_num", length = 60)
-    private String bankAccountNum;
-
+//    // 엔티티의 기본 키가 복합 키인 경우이므로 findById 메서드를 사용할 수 없습니다.
+//    @EmbeddedId
+//    private AccountId id;
+//
+//    @MapsId("userId") // 복합 키의 일부인 userId를 매핑합니다.
+//    @ManyToOne
+//    @JoinColumn(name = "user_id")
+//    private User user;
 
     @Column(name = "bank", length = 20)
     private String bank;
 
     @Column(name = "bank_account_type", length = 20)
     private String bankAccountType;
+
+    @Column(name = "bank_account_num", length = 60)
+    private String bankAccountNum;
 
     @Column(name = "bank_account_pwd", length = 60)
     private String bankAccountPwd;
