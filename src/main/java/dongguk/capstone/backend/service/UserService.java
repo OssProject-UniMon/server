@@ -1,8 +1,7 @@
-package dongguk.capstone.backend.Service;
+package dongguk.capstone.backend.service;
 
-import dongguk.capstone.backend.DTO.SignupRequestDTO;
-import dongguk.capstone.backend.DTO.SignupRequestDTO;
-import dongguk.capstone.backend.Repository.UserRepository;
+import dongguk.capstone.backend.userdto.SignupRequestDTO;
+import dongguk.capstone.backend.repository.UserRepository;
 import dongguk.capstone.backend.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,11 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    /**
+     * 회원 가입 로직
+     * @param signupRequestDTO
+     * @return
+     */
     // DTO로 얻은 데이터 값들을 Entity로 전달하는 작업은 비즈니스 로직이므로 Service에서 이루어짐.
     public User save(SignupRequestDTO signupRequestDTO) { // 여기서 DTO가 아니라 user를 해야될 듯
         User user = new User();

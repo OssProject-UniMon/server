@@ -1,8 +1,8 @@
-package dongguk.capstone.backend.UserTest;
+package dongguk.capstone.backend.usertest;
 
-import dongguk.capstone.backend.DTO.SignupRequestDTO;
-import dongguk.capstone.backend.Repository.UserRepository;
-import dongguk.capstone.backend.Service.UserService;
+import dongguk.capstone.backend.userdto.SignupRequestDTO;
+import dongguk.capstone.backend.repository.UserRepository;
+import dongguk.capstone.backend.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +24,6 @@ public class UserServiceTest {
         signupRequestDTO.setEmail("mmm");
 
         // when
-        // 여기서 그냥 mmm을 넣으려고 할 때 existByEmail이 잘 실행되는지 확인..!
         userService.save(signupRequestDTO);
         Boolean b = userRepository.findByEmail("mmm@naver.com").isPresent();
 

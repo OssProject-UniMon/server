@@ -1,4 +1,4 @@
-package dongguk.capstone.backend.DTO;
+package dongguk.capstone.backend.userdto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

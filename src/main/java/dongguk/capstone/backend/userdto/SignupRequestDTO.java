@@ -1,4 +1,4 @@
-package dongguk.capstone.backend.DTO;
+package dongguk.capstone.backend.userdto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -10,7 +10,7 @@ import lombok.Setter;
 @Table(name = "user") // 현재 MySQL의 table 이름이 user이므로 name을 설정해줘야 함
 public class User {
     @Id // @Id 애노테이션이 붙은 바로 밑 필드가 pk가 되는 것
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // JPA에서 엔티티의 기본 키를 자동으로 생성하는 전략 - 엔티티의 기본 키를 자동으로 생성하고 싶을 때 사용하는 설정
     private Long user_id;
 
     @Column(length = 100) // @Column은 DB의 컬럼(속성)과 필드의 변수가 매핑되게 해준다
@@ -38,7 +38,7 @@ public class User {
     @Column(name = "scholarship_status")
     private int scholarshipStatus;
 
-    @Column(length = 50, name = "housing_housing_type")
+    @Column(name = "housing_housing_type", length = 50)
     private String housingHousingType;
 
     @Column(length = 45)

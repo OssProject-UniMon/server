@@ -1,11 +1,11 @@
-package dongguk.capstone.backend.Controller;
+package dongguk.capstone.backend.controller;
 
-import dongguk.capstone.backend.DTO.LoginRequestDTO;
-import dongguk.capstone.backend.DTO.LoginResponseDTO;
-import dongguk.capstone.backend.DTO.SignupRequestDTO;
-import dongguk.capstone.backend.DTO.SignupResponseDTO;
-import dongguk.capstone.backend.Repository.UserRepository;
-import dongguk.capstone.backend.Service.UserService;
+import dongguk.capstone.backend.userdto.LoginRequestDTO;
+import dongguk.capstone.backend.userdto.LoginResponseDTO;
+import dongguk.capstone.backend.userdto.SignupRequestDTO;
+import dongguk.capstone.backend.userdto.SignupResponseDTO;
+import dongguk.capstone.backend.repository.UserRepository;
+import dongguk.capstone.backend.service.UserService;
 import dongguk.capstone.backend.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,6 @@ public class UserController {
     public SignupResponseDTO signup(@Valid @RequestBody SignupRequestDTO signupRequestDTO){  // HTTP를 활용한 JSON 형식의 request를 받으려면, @RequestBody가 필요하다!!!
         // User user = userService.save(signupRequestDTO);
         userService.save(signupRequestDTO);
-        HttpHeaders httpHeaders = new HttpHeaders();
         // 이게 된다면, BackendAdvice에도 ResponseEntity 적용하자
         return new SignupResponseDTO(1);
     }

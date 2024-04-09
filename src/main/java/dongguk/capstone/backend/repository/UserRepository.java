@@ -1,10 +1,9 @@
-package dongguk.capstone.backend.Repository;
+package dongguk.capstone.backend.repository;
 
 import dongguk.capstone.backend.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository

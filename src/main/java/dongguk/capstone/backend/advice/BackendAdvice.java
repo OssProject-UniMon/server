@@ -1,6 +1,6 @@
-package dongguk.capstone.backend.Advice;
+package dongguk.capstone.backend.advice;
 
-import dongguk.capstone.backend.DTO.SignupResponseDTO;
+import dongguk.capstone.backend.userdto.SignupResponseDTO;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
