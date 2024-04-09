@@ -1,4 +1,4 @@
-package dongguk.capstone.backend.advice;
+package dongguk.capstone.backend.backendadvice;
 
 import dongguk.capstone.backend.userdto.SignupResponseDTO;
 import org.springframework.web.bind.MethodArgumentNotValidException;
