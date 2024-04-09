@@ -8,9 +8,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "account")
-@IdClass(AccountId.class)
 public class Account {
-    @Id
+
+    // 엔티티의 기본 키가 복합 키인 경우이므로 findById 메서드를 사용할 수 없습니다.
+
+    @EmbeddedId
+    private AccountId id;
+
+    @MapsId("userId") // 복합 키의 일부인 userId를 매핑합니다.
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -18,6 +23,7 @@ public class Account {
     @Id
     @Column(name = "bank_account_num", length = 60)
     private String bankAccountNum;
+
 
     @Column(name = "bank", length = 20)
     private String bank;

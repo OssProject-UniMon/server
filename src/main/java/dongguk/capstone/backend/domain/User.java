@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity // 도메인 객체인 User에 JPA 엔티티 매핑을 하기 위해 @Entity 애노테이션 필요
 @Getter
 @Setter
@@ -49,4 +52,7 @@ public class User {
 
     @Column(name = "schedule_minute")
     private int scheduleMinute;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Account> accounts = new ArrayList<>();
 }
