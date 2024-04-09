@@ -8,10 +8,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "account")
+@IdClass(AccountId.class)
 public class Account {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long user_id;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Id
     @Column(name = "bank_account_num", length = 60)

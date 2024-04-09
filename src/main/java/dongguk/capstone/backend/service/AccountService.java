@@ -9,7 +9,9 @@ import dongguk.capstone.backend.accountdto.AccountLogsResponseDTO;
 import dongguk.capstone.backend.accountdto.AccountRegistRequestDTO;
 import dongguk.capstone.backend.accountdto.LogsListDTO;
 import dongguk.capstone.backend.domain.Account;
+import dongguk.capstone.backend.domain.User;
 import dongguk.capstone.backend.repo.AccountRepository;
+import dongguk.capstone.backend.repo.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +23,14 @@ import java.util.List;
 @Transactional
 public class AccountService {
 
+    private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final BarobillApiService barobillApiService;
 
-    public AccountService(AccountRepository accountRepository) throws MalformedURLException {
+    public AccountService(AccountRepository accountRepository, UserRepository userRepository) throws MalformedURLException {
         barobillApiService = new BarobillApiService(BarobillApiProfile.TESTBED);
         this.accountRepository = accountRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -47,7 +51,7 @@ public class AccountService {
         // 그래야 이렇게 등록하고, 나중에 거래 내역 조회할 때 DB에 내용 들고와서 바로빌의 입출금 내역 조회 API 사용할 수 있으니까..?!
 
         Account account = new Account();
-        account.setUser_id(userId);
+        account.setUser(userRepository.findById(userId).get());
         account.setBankAccountNum(accountRegistRequestDTO.getBank_account_num());
         account.setBank(accountRegistRequestDTO.getBank());
         account.setBankAccountType(accountRegistRequestDTO.getBank_account_type());
