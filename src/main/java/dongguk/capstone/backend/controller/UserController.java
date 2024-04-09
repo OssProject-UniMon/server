@@ -4,7 +4,7 @@ import dongguk.capstone.backend.userdto.LoginRequestDTO;
 import dongguk.capstone.backend.userdto.LoginResponseDTO;
 import dongguk.capstone.backend.userdto.SignupRequestDTO;
 import dongguk.capstone.backend.userdto.SignupResponseDTO;
-import dongguk.capstone.backend.repository.UserRepository;
+import dongguk.capstone.backend.repo.UserRepository;
 import dongguk.capstone.backend.service.UserService;
 import dongguk.capstone.backend.domain.User;
 import jakarta.validation.Valid;

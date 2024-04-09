@@ -1,7 +1,7 @@
 package dongguk.capstone.backend.service;
 
 import dongguk.capstone.backend.userdto.SignupRequestDTO;
-import dongguk.capstone.backend.repository.UserRepository;
+import dongguk.capstone.backend.repo.UserRepository;
 import dongguk.capstone.backend.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

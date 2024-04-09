@@ -39,9 +39,9 @@ public class AccountController {
         return new AccountRegistResponseDTO(1);
     }
 
-    @GetMapping("/logs/{pageNum}")
-    public ResponseEntity<AccountLogsResponseDTO> accountLogs(@Valid @PathVariable(name = "pageNum") int pageNum, @RequestParam("userId") Long userId, @RequestBody AccountLogsRequestDTO accountLogsRequestDTO){
-        AccountLogsResponseDTO accountLogsResponseDTO = accountService.log(pageNum, userId, accountLogsRequestDTO);
+    @GetMapping("/logs")
+    public ResponseEntity<AccountLogsResponseDTO> accountLogs(@Valid @RequestParam("userId") Long userId, @RequestBody AccountLogsRequestDTO accountLogsRequestDTO){
+        AccountLogsResponseDTO accountLogsResponseDTO = accountService.log(userId, accountLogsRequestDTO);
         // 만약 accountLogResponseDTO가 존재한다면, 200 ok 와 body로 accountLogsResponseDTO 전해주기
         if(accountLogsResponseDTO!=null)
             return ResponseEntity.ok(accountLogsResponseDTO);

@@ -9,9 +9,7 @@ import dongguk.capstone.backend.accountdto.AccountLogsResponseDTO;
 import dongguk.capstone.backend.accountdto.AccountRegistRequestDTO;
 import dongguk.capstone.backend.accountdto.LogsListDTO;
 import dongguk.capstone.backend.domain.Account;
-import dongguk.capstone.backend.repository.AccountRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import dongguk.capstone.backend.repo.AccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,16 +66,15 @@ public class AccountService {
 
     /**
      * 거래 내역 조회 로직
-     * @param pageNum
      * @param userId
      * @return
      */
-    public AccountLogsResponseDTO log(int pageNum, Long userId, AccountLogsRequestDTO accountLogsRequestDTO) {
+    public AccountLogsResponseDTO log(Long userId, AccountLogsRequestDTO accountLogsRequestDTO) {
         AccountLogsResponseDTO accountLogsResponseDTO = new AccountLogsResponseDTO();
         if(accountRepository.findById(userId).isPresent()){
             Account logAccount = accountRepository.findById(userId).get();
             PagedBankAccountLogEx result = barobillApiService.bankAccount.getPeriodBankAccountLogEx("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                    logAccount.getBankAccountNum(), accountLogsRequestDTO.getStartDate(), accountLogsRequestDTO.getEndDate(), 10, pageNum, 1);
+                    logAccount.getBankAccountNum(), accountLogsRequestDTO.getStartDate(), accountLogsRequestDTO.getEndDate(), 10, 1, 2); // 10, 1, 2는 일단 고정, 10은 나중에 바꾸자
 
             List<LogsListDTO> list = new ArrayList<>();
 
@@ -105,7 +102,7 @@ public class AccountService {
         logsListDTO.setBalance(bankAccountLogEx.getBalance());
         logsListDTO.setTransDt(bankAccountLogEx.getTransDT());
         logsListDTO.setTransType(bankAccountLogEx.getTransType());
-        logsListDTO.setTransOffice(bankAccountLogEx.getTransOffice());
+//        logsListDTO.setTransOffice(bankAccountLogEx.getTransOffice());
         logsListDTO.setTransRemark(bankAccountLogEx.getTransRemark());
         return logsListDTO;
     }
