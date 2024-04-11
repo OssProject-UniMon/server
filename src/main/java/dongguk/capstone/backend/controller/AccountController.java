@@ -31,12 +31,12 @@ public class AccountController {
 
 
     @PostMapping("/regist")
-    public int accountRegist(@RequestParam("userId") Long userId, @RequestBody AccountRegistRequestDTO accountRegistRequestDTO){
+    public AccountRegistResponseDTO accountRegist(@RequestParam("userId") Long userId, @RequestBody AccountRegistRequestDTO accountRegistRequestDTO){
         // 여기서 받은 userId를 어떻게 할 수 있을까?
         // 그리고 Account 도메인 내용 DB 스키마 만들어지면 채우기
         log.info("dto : {}" , accountRegistRequestDTO);
         int result = accountService.regist(accountRegistRequestDTO, userId); // 새로운 계좌여야 테스트 가능할 듯
-        return result;
+        return new AccountRegistResponseDTO(result);
     }
 
     @GetMapping("/logs")

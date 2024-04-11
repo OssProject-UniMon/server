@@ -13,6 +13,6 @@ public class LogsListDTO {
     private String balance;
     private String transDt;
     private String transType;
-    private String transOffice;
+//    private String transOffice;
     private String transRemark;
 }
