@@ -18,15 +18,37 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:orientation="horizontal">
+            <Button
+                android:id="@+id/btn_account_str"
+                android:layout_marginLeft="14dp"
+                android:layout_marginRight="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="지금 계좌 연결"
+                android:textSize="20sp"
+                android:textColor="#ffffff"
+                android:background="@drawable/background_radius"
+                android:visibility="visible"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
             <TextView
-                android:text="자산:"
-                android:layout_marginTop="5dp"
-                android:layout_marginLeft="10dp"
-                android:gravity="left"
-                android:textStyle="bold"
-                android:textSize="25sp"
+                android:id="@+id/text1"
                 android:layout_width="100dp"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="5dp"
+                android:gravity="left"
+                android:text="자산:"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </LinearLayout>
 
         <LinearLayout

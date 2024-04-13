@@ -53,6 +53,7 @@ class LoginActivity : AppCompatActivity() {
             call.enqueue(object : Callback<LoginResponse> {
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     val result = response.body()?.serverCode
+                    val userid = response.body()?.userId
                     val logresult = response.body()
                     Log.d("LoginResult", "Response: $logresult")
                     System.out.println(result)

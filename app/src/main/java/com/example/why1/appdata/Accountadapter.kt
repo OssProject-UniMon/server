@@ -1,4 +1,4 @@
-package com.example.why1
+package com.example.why1.appdata
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
+import com.example.why1.R
 
 class Accountadapter(val context: Context, val TestList: ArrayList<AccountData>) : BaseAdapter() {
     override fun getCount(): Int {
