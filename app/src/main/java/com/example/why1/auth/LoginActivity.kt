@@ -13,6 +13,7 @@ import com.example.why1.R
 import com.example.why1.retropit.LoginRequest
 import com.example.why1.retropit.LoginResponse
 import com.example.why1.retropit.ManageService
+import com.example.why1.appdata.AppData
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -55,6 +56,9 @@ class LoginActivity : AppCompatActivity() {
                     val result = response.body()?.serverCode
                     val userid = response.body()?.userId
                     val logresult = response.body()
+                    if (userid != null) {
+                        AppData.S_userId = userid // 유저 아이디 공용변수에 업데이트
+                    }
                     Log.d("LoginResult", "Response: $logresult")
                     System.out.println(result)
                     if (result != null && result == 1) {

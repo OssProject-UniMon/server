@@ -1,5 +1,6 @@
 package com.example.why1
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -68,7 +69,10 @@ class ActRegisterActivity : AppCompatActivity() {
                     Log.e("act_register", "Failed to send request to server. Error: ${t.message}")
                 }
             })
+            AppData.Access_code = 1 //등록되었을때 공용변수 업데이트, 나중에 등록성공했을때로 코드 올리셈
 
+            val intent = Intent(this@ActRegisterActivity, moneyActivity::class.java)
+            startActivity(intent)
         }
 
     }
