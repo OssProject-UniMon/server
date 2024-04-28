@@ -338,6 +338,4 @@ public class BarobillTests {
             System.out.println(result);
         }
     }
-
 }
-

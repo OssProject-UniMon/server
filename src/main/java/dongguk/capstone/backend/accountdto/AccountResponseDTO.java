@@ -5,6 +5,6 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
-public class AccountRegistResponseDTO {
+public class AccountResponseDTO {
     private final int serverCode;
 }

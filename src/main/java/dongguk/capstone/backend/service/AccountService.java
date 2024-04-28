@@ -52,7 +52,9 @@ public class AccountService {
         // 그래야 이렇게 등록하고, 나중에 거래 내역 조회할 때 DB에 내용 들고와서 바로빌의 입출금 내역 조회 API 사용할 수 있으니까..?!
 
         Account account = new Account();
-        account.setUser(userRepository.findById(userId).get());
+        if(userRepository.findById(userId).isPresent()) {
+            account.setUser(userRepository.findById(userId).get());
+        }
         account.setBankAccountNum(accountRegistRequestDTO.getBank_account_num());
         account.setBank(accountRegistRequestDTO.getBank());
         account.setBankAccountType(accountRegistRequestDTO.getBank_account_type());
@@ -63,10 +65,10 @@ public class AccountService {
         accountRepository.save(account);
 
 //        int result = barobill.RegistBankAccount("연동인증키", "사업자번호", "수집주기", "은행코드", "계좌유형", "계좌번호", ...)
-        int result = barobillApiService.bankAccount.registBankAccount("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "MINUTE10",
+        return barobillApiService.bankAccount.registBankAccount("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "MINUTE10",
                 accountRegistRequestDTO.getBank(), accountRegistRequestDTO.getBank_account_type(), accountRegistRequestDTO.getBank_account_num(), accountRegistRequestDTO.getBank_account_pwd(),
                 accountRegistRequestDTO.getWeb_id(), accountRegistRequestDTO.getWeb_pwd(), accountRegistRequestDTO.getIdentity_num(),"","");
-        return result;
+//        return result;
     }
 
     /**

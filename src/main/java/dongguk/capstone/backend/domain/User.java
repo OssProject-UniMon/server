@@ -53,6 +53,7 @@ public class User {
     @Column(name = "schedule_minute")
     private int scheduleMinute;
 
+    // 이걸 어떻게 해야되지
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Account> accounts = new ArrayList<>();
 
