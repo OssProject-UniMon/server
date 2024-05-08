@@ -11,8 +11,7 @@ public class LogsListDTO {
     private String deposit;
     private String withdraw;
     private String balance;
-    private String transDt;
-    private String transType;
-//    private String transOffice;
-    private String transRemark;
+    private String date;
+    private String useStoreName;
+    private String category;
 }

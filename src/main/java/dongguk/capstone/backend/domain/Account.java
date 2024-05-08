@@ -1,5 +1,6 @@
 package dongguk.capstone.backend.domain;
 
+import dongguk.capstone.backend.serializable.AccountId;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,14 +11,31 @@ import lombok.Setter;
 @Table(name = "account")
 public class Account {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    private Long userId;
+    @EmbeddedId
+    private AccountId accountId;
+
+    @Column(name = "bank")
+    private String bank;
+
+    @Column(name = "bank_account_type")
+    private String bankAccountType;
+
+    @Column(name = "bank_account_pwd")
+    private String bankAccountPwd;
+
+    @Column(name = "web_id")
+    private String webId;
+
+    @Column(name = "web_pwd")
+    private String webPwd;
+
+    @Column(name = "identity_num")
+    private String identityNum;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
+
 
 //    // 엔티티의 기본 키가 복합 키인 경우이므로 findById 메서드를 사용할 수 없습니다.
 //    @EmbeddedId
@@ -27,25 +45,4 @@ public class Account {
 //    @ManyToOne
 //    @JoinColumn(name = "user_id")
 //    private User user;
-
-    @Column(name = "bank", length = 20)
-    private String bank;
-
-    @Column(name = "bank_account_type", length = 20)
-    private String bankAccountType;
-
-    @Column(name = "bank_account_num", length = 60)
-    private String bankAccountNum;
-
-    @Column(name = "bank_account_pwd", length = 60)
-    private String bankAccountPwd;
-
-    @Column(name = "web_id", length = 50)
-    private String webId;
-
-    @Column(name = "web_pwd", length = 50)
-    private String webPwd;
-
-    @Column(name = "identity_num", length = 50)
-    private String identityNum;
 }

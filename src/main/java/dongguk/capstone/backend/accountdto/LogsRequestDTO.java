@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountLogsRequestDTO {
+public class LogsRequestDTO {
     private String startDate;
     private String endDate;
+    private String bankAccountNum;
+    private String cardNum;
 }

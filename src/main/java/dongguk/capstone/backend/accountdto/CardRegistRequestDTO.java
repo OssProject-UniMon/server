@@ -4,11 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccountLogsResponseDTO {
-    private List<LogsListDTO> logList;
+public class CardRegistRequestDTO {
+    private String cardCompany;
+    private String cardType;
+    private String cardNum;
+    private String webId;
+    private String webPwd;
 }

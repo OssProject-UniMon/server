@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 /**
  * 바로빌 계좌조회 API
  */
-public class BarobillTests {
+public class BarobillAccountTests {
 
     /**
      * 바로빌 API 정의 클래스
@@ -24,7 +24,7 @@ public class BarobillTests {
      */
     private final BarobillApiService barobillApiService;
 
-    public BarobillTests() throws MalformedURLException {
+    public BarobillAccountTests() throws MalformedURLException {
         barobillApiService = new BarobillApiService(BarobillApiProfile.TESTBED);
     }
 
