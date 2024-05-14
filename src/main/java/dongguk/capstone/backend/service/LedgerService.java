@@ -177,7 +177,6 @@ public class LedgerService {
                                 processedCardLogs.add(cardLogEx); // 처리된 카드 로그를 리스트에 추가
                                 processedBankAccountLogs.add(bankAccountLogEx); // 처리된 계좌 로그를 리스트에 추가
                             }
-
                             // 이체, 기타에 대해서는 여기서 else if문으로 처리하기
                         }
                     }
@@ -253,8 +252,17 @@ public class LedgerService {
     private Log mapToLogEntity(Long userId, String cardNum, LogsListDTO logsListDTO) {
         Log logEntity = new Log();
         LogEmbedded logEmbedded = new LogEmbedded();
+        // userId에 따라 logId 값을 설정
+        Long logId = logRepository.findMaxLogIdByUserId(userId); // 해당 userId의 최대 logId를 가져옴
+        if (logId == null) {
+            logId = 1L; // 최대 logId가 없으면 1로 초기화
+        } else {
+            logId++; // 최대 logId가 있으면 1 증가
+        }
+        logEmbedded.setLogId(logId);
         logEmbedded.setUserId(userId);
         logEntity.setLogEmbedded(logEmbedded);
+        // 나머지 필드 값 설정
         logEntity.setCardNum(cardNum);
         logEntity.setDeposit(logsListDTO.getDeposit());
         logEntity.setWithdraw(logsListDTO.getWithdraw());
