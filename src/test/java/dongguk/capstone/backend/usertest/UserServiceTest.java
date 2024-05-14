@@ -1,7 +1,7 @@
 package dongguk.capstone.backend.usertest;
 
 import dongguk.capstone.backend.userdto.SignupRequestDTO;
-import dongguk.capstone.backend.repo.UserRepository;
+import dongguk.capstone.backend.repository.UserRepository;
 import dongguk.capstone.backend.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

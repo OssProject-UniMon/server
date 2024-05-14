@@ -1,6 +1,6 @@
 package dongguk.capstone.backend.domain;
 
-import dongguk.capstone.backend.serializable.AccountId;
+import dongguk.capstone.backend.serializable.AccountEmbedded;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +12,7 @@ import lombok.Setter;
 public class Account {
 
     @EmbeddedId
-    private AccountId accountId;
+    private AccountEmbedded accountEmbedded;
 
     @Column(name = "bank")
     private String bank;

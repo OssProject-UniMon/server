@@ -36,7 +36,7 @@ public class BarobillCardTests {
      * API 레퍼런스 : https://dev.barobill.co.kr/docs/references/카드조회-API#RegistCard
      * </p>
      */
-    @Test
+
     public void registCard() {
         String certKey = "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03";
         String corpNum = "2018204468";

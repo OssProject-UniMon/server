@@ -1,6 +1,6 @@
 package dongguk.capstone.backend.domain;
 
-import dongguk.capstone.backend.serializable.CardId;
+import dongguk.capstone.backend.serializable.CardEmbedded;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import lombok.Setter;
 @Table(name = "card")
 public class Card {
     @EmbeddedId // 복합키 하는 방법
-    private CardId cardId;
+    private CardEmbedded cardEmbedded;
 
     @Column(name = "card_company")
     private String cardCompany;

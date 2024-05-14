@@ -13,5 +13,6 @@ public class LogsListDTO {
     private String balance;
     private String date;
     private String useStoreName;
+    private String useStoreCorpNum;
     private String category;
 }

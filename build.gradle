@@ -33,11 +33,13 @@ dependencies {
 	implementation 'org.glassfish.ha:ha-api:3.1.13'
 	implementation 'org.glassfish.metro:webservices-rt:2.4.4'
 	implementation files('barobill/barobill-api-sdk-java17.jar')
+	implementation 'org.jsoup:jsoup:1.15.3'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'junit:junit:4.12'
 }
 
 tasks.named('test') {
