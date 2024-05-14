@@ -47,14 +47,14 @@ class moneyActivity : AppCompatActivity() {
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://54.180.150.195:443")
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://52.79.154.36:443")
         val ActService = retrofit.create(ManageService::class.java)
 
 
 
         //엑티비티 실행 되자마자 값 가져오게함
         act_btn.setOnClickListener {
-            val dynamicUrl2 = "/account/logs?userId=$userId"
+            val dynamicUrl2 = "/account/account-logs?userId=$userId"
             val call = ActService.act_list(dynamicUrl2,"20240401","20240405")
             call.enqueue(object : Callback<act_listResponse> {
                 override fun onResponse(call: Call<act_listResponse>, response: Response<act_listResponse>) {

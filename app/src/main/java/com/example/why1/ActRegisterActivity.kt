@@ -29,7 +29,7 @@ class ActRegisterActivity : AppCompatActivity() {
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://54.180.150.195:443")
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://52.79.154.36:443")
         val ActService = retrofit.create(ManageService::class.java)
 
         val userid = AppData.S_userId //유저 아이디 불러오기
@@ -55,7 +55,7 @@ class ActRegisterActivity : AppCompatActivity() {
 
             //계좌 연동하기, 일단 임시로 리퀘스트값 채웠음,일단 페이지 들어오면 바로 실행되게함 ,나중에 변수로 바꿔
             val userId = 1 // 임시값, 유저 id 인트래
-            val dynamicUrl = "/account/regist?userId=$userId"
+            val dynamicUrl = "/account/account-regist?userId=$userId"
             val call = ActService.act_register(dynamicUrl, act_RegisterRequest("KB","p","110500411959", "1234","abc1234","wal1234","000127"))
             call.enqueue(object : Callback<JoinResponse> {
                 override fun onResponse(call: Call<JoinResponse>, response: Response<JoinResponse>) {
