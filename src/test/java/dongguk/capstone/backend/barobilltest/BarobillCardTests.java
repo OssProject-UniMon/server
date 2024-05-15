@@ -307,9 +307,9 @@ public class BarobillCardTests {
         String corpNum = "2018204468";
         String id = "capstone11";
         String cardNum = "5107376798062092";
-        String startDate = "20240501";
-        String endDate = "20240504";
-        int countPerPage = 100;
+        String startDate = "20240503";
+        String endDate = "20240514";
+        int countPerPage = 20;
         int currentPage = 1;
         int orderDirection = 2;
 

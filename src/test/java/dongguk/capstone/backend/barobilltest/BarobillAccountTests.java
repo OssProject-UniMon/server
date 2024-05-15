@@ -218,9 +218,9 @@ public class BarobillAccountTests {
         String corpNum = "2018204468";
         String id = "capstone11";
         String bankAccountNum = "110500411959";
-        String startDate = "20240407";
-        String endDate = "20240408";
-        int countPerPage = 10;
+        String startDate = "20240426";
+        String endDate = "20240430";
+        int countPerPage = 20;
         int currentPage = 1;
         int orderDirection = 2;
 

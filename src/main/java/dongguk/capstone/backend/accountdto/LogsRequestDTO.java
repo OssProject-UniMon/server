@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 public class LogsRequestDTO {
     private String startDate;
     private String endDate;
-    private String bankAccountNum;
-    private String cardNum;
+//    private String bankAccountNum;
+//    private String cardNum;
 }

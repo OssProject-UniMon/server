@@ -10,6 +10,7 @@ import dongguk.capstone.backend.accountdto.*;
 import dongguk.capstone.backend.domain.Account;
 import dongguk.capstone.backend.domain.Card;
 import dongguk.capstone.backend.domain.Log;
+import dongguk.capstone.backend.domain.User;
 import dongguk.capstone.backend.repository.AccountRepository;
 import dongguk.capstone.backend.repository.CardRepository;
 import dongguk.capstone.backend.repository.LogRepository;
@@ -21,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,9 +32,11 @@ import java.io.IOException;
 
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -117,38 +122,87 @@ public class LedgerService {
         return 0;
     }
 
-    /**
-     * 거래 내역 조회 로직
-     * 계좌 : 바로빌 계좌 조회 API를 통해 계좌 거래 내역 받아오기
-     * 카드 : 계좌 거래 내역과 일시가 같은 거래 내역을 비교하여 상점 카테고리 분류
-     * @param userId
-     * @return
-     */
-    public LogsResponseDTO log(Long userId, LogsRequestDTO logsRequestDTO) {
-        LogsResponseDTO logsResponseDTO = new LogsResponseDTO(); // 거래 내역 로그 응답
-        log.info("logsRequestDTO : {}",logsRequestDTO);
-        try {
-            // 사용자의 계좌 정보 조회
-            Optional<Account> accountOptional = accountRepository.findByUserIdAndBankAccountNum(userId, logsRequestDTO.getBankAccountNum());
-            // 사용자의 카드 정보 조회
-            Optional<Card> cardOptional = cardRepository.findByUserIdAndCardNum(userId, logsRequestDTO.getCardNum());
-            log.info("accountOptional : {}", accountOptional);
-            log.info("cardOptional : {}", cardOptional);
-            if (accountOptional.isPresent() && cardOptional.isPresent()) {
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
+    public void fetchAndSaveLogs(){
+        List<User> users = userRepository.findAll();
+        log.info("users : {}",users);
+        Account account = new Account();
+        Card card = new Card();
+        for(User user : users){
+            List<Account> accounts = accountRepository.findAll();
+            List<Card> cards = cardRepository.findAll();
+
+            log.info("accounts : {}",accounts);
+            log.info("cards : {}",cards);
+
+            // 오늘 날짜를 가져옴
+            LocalDate today = LocalDate.now();
+            log.info("today : {}",today);
+
+            // 시작일은 오늘로부터 3달 전으로 설정
+            LocalDate startDate = today.minusMonths(3);
+            log.info("startDate : {}",startDate);
+
+            // 종료일은 오늘 날짜로 설정
+            LocalDate endDate = today;
+            log.info("endDate : {}",endDate);
+
+            // 시작일을 LocalDateTime으로 변환하고 시간을 00:00:00으로 설정
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            log.info("startDateTime : {}",startDateTime);
+
+            // 종료일을 LocalDateTime으로 변환하고 시간을 23:59:59로 설정
+            LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+            log.info("startDateTime : {}",startDateTime);
+
+            String startDateString = startDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String endDateString = endDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+
+            // 포맷터를 사용하여 LocalDateTime을 String으로 변환
+            log.info("startDateString : {}",startDate);
+            log.info("endDateString : {}",endDate);
+
+            for(Account acc : accounts){
+                if(user.getUser_id().equals(acc.getUser().getUser_id())){
+                    account = acc;
+                }
+            }
+            for(Card c : cards){
+                if(user.getUser_id().equals(c.getUser().getUser_id())){
+                    card = c;
+                }
+            }
+
+            try {
+
+                log.info("account : {}",account);
+                log.info("accountNum : {}",account.getAccountEmbedded().getBankAccountNum());
+
+                log.info("card : {}",card);
+                log.info("cardNum : {}",card.getCardEmbedded().getCardNum());
+
+
+                // startDateString, endDateString이 바로빌에서 원하는 요청 데이터 형태랑 다른 듯???
+                // 지금은 startDateString : 2024-02-15, endDateString : 2024-05-15 인데 바로빌에서 원하는건 String startDate = "20240407"; String endDate = "20240408"; 이다.
                 // 바로빌 API를 사용하여 계좌 조회
-                PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                        logsRequestDTO.getBankAccountNum(), logsRequestDTO.getStartDate(), logsRequestDTO.getEndDate(), 10, 1, 2); // 10, 1, 2는 일단 고정, 10은 나중에 바꾸자
+                PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
+                        "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
+                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 20, 1, 2);
+
+                log.info("accountLog : {}",accountLog);
+
 
                 // 바로빌 API를 사용하여 카드 조회
-                PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                        logsRequestDTO.getCardNum(), logsRequestDTO.getStartDate(), logsRequestDTO.getEndDate(), 10, 1, 2);
+                PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
+                        "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
+                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 20, 1, 2);
 
-                log.info("accountLog : {}", accountLog);
-                log.info("cardLog : {}", cardLog);
+                log.info("cardLog : {}",cardLog);
 
-                List<LogsListDTO> list = new ArrayList<>();
 
-                log.info("accountLog.getCurrentPage() : {}", accountLog.getCurrentPage());
+                log.info("accountLog.getCurrentPage() : {}",accountLog.getCurrentPage());
+
                 if (accountLog.getCurrentPage() < 0) {  // 호출 실패
                     System.out.println(accountLog.getCurrentPage()); // 나중에 이 호출 실패했을 때의 exception handler 구현하자
                 } else {  // 호출 성공
@@ -170,53 +224,68 @@ public class LedgerService {
                                 // 계좌 결제 내역과 카드 결제 정보를 순서대로 넣으면 곧 일시 순서대로 넣는다
                                 LogsListDTO logsListDTO = getLogsListDTO(bankAccountLogEx, cardLogEx); // 여기서 IOException이 발생할 수 있기 때문에 try-catch문 사용
                                 // 2. LogsListDTO를 Log 엔티티로 매핑하여 저장
-                                Log logEntity = mapToLogEntity(userId,logsRequestDTO.getCardNum(),logsListDTO);
+                                Log logEntity = mapToLogEntity(user.getUser_id(),cardLogEx.getCardNum(),logsListDTO);
                                 logRepository.save(logEntity); // LogRepository를 통해 저장
-                                log.info("logsListDTO : {}", logsListDTO);
-                                list.add(logsListDTO);
                                 processedCardLogs.add(cardLogEx); // 처리된 카드 로그를 리스트에 추가
                                 processedBankAccountLogs.add(bankAccountLogEx); // 처리된 계좌 로그를 리스트에 추가
                             }
-                            // 이체, 기타에 대해서는 여기서 else if문으로 처리하기
                         }
                     }
                 }
-                logsResponseDTO.setLogList(list);
+            } catch (IOException e) {
+                log.error("IOException occurred: {}", e.getMessage());
+                // IOException이 발생했을 때의 처리를 여기에 추가합니다.
             }
-        }catch (IOException e){
-            log.error("PopbillException occurred: {}", e.getMessage());
         }
-
-        return logsResponseDTO;
-        // 여기서는 logResponseDTO를 LogRepository에 저장
     }
 
 
+    /**
+     * 거래 내역 조회 로직
+     * 계좌 : 바로빌 계좌 조회 API를 통해 계좌 거래 내역 받아오기
+     * 카드 : 계좌 거래 내역과 일시가 같은 거래 내역을 비교하여 상점 카테고리 분류
+     * @param userId
+     * @return
+     */
+    public LogsResponseDTO log(Long userId, LogsRequestDTO logsRequestDTO) {
+        LogsResponseDTO logsResponseDTO = new LogsResponseDTO(); // 거래 내역 로그 응답
+        log.info("logsRequestDTO : {}", logsRequestDTO);
 
-//    public AccountLogsResponseDTO log(Long userId, AccountLogsRequestDTO accountLogsRequestDTO) {
-//        AccountLogsResponseDTO accountLogsResponseDTO = new AccountLogsResponseDTO();
-//        if(accountRepository.findById(userId).isPresent()){
-//            Account logAccount = accountRepository.findById(userId).get();
-//            PagedBankAccountLogEx result = barobillApiService.bankAccount.getPeriodBankAccountLogEx("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-//                    logAccount.getBankAccountNum(), accountLogsRequestDTO.getStartDate(), accountLogsRequestDTO.getEndDate(), 10, 1, 2); // 10, 1, 2는 일단 고정, 10은 나중에 바꾸자
-//
-//            List<LogsListDTO> list = new ArrayList<>();
-//
-//            if (result.getCurrentPage() < 0) {  // 호출 실패
-//                System.out.println(result.getCurrentPage()); // 나중에 이 호출 실패했을 때의 exception handler 구현하자
-//            } else {  // 호출 성공
-//                for (BankAccountLogEx bankAccountLogEx : result.getBankAccountLogList().getBankAccountLogEx()) {
-//                    // for-each문으로 logs의 내용 중 필요한 필드만 AccountLogsResponseDTO로 옮긴다.
-//                    LogsListDTO logsListDTO = getLogsListDTO(bankAccountLogEx);
-//                    list.add(logsListDTO);
-//                }
-//            }
-//
-//            accountLogsResponseDTO.setLogList(list);
-//            return  accountLogsResponseDTO;
-//        }
-//        return accountLogsResponseDTO; // userId가 없을 때, 즉 아무것도 없는 accountLogsResponseDTO가 반환된다.
-//    }
+        List<Log> logs = logRepository.findAll();
+        List<LogsListDTO> list = new ArrayList<>();
+        // 시작일과 종료일을 LogsRequestDTO에서 가져옴
+        LocalDate startDate = LocalDate.parse(logsRequestDTO.getStartDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate endDate = LocalDate.parse(logsRequestDTO.getEndDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        log.info("startDate : {}", startDate);
+        log.info("endDate : {}", endDate);
+
+        log.info("logs : {}", logs);
+
+        for (Log l : logs) {
+            if (userId.equals(l.getLogEmbedded().getUserId())) {
+                log.info("l.getLogEmbedded().getUserId() : {}",l.getLogEmbedded().getUserId());
+                LocalDateTime logDateTime = LocalDateTime.parse(l.getDate(), DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                LocalDate logDate = logDateTime.toLocalDate(); // LocalDateTime을 LocalDate로 변환
+                log.info("logDateTime : {}",logDateTime);
+                log.info("logDate : {}",logDate);
+                if (!logDate.isBefore(startDate) && !logDate.isAfter(endDate)) {
+                    LogsListDTO logsListDTO = new LogsListDTO();
+                    logsListDTO.setDeposit(l.getDeposit());
+                    logsListDTO.setWithdraw(l.getWithdraw());
+                    logsListDTO.setBalance(l.getBalance());
+                    logsListDTO.setDate(l.getDate());
+                    logsListDTO.setUseStoreName(l.getUseStoreName());
+                    logsListDTO.setCategory(l.getCategory());
+                    list.add(logsListDTO);
+                }
+            }
+        }
+        logsResponseDTO.setLogList(list);
+        log.info("logsResponseDTO : {}",logsResponseDTO);
+        return logsResponseDTO;
+    }
+
 
     // 유지보수 측면에서 특정한 기능을 수행하는 부분을 분리하여 별도의 메소드로 추출하는 것이 코드가 더 간결해지고 의도가 명확해질 수 있다.
     // static 메소드에서는 인스턴스 필드를 직접 참조할 수 없다. (bizInfoCheckService)
@@ -225,7 +294,7 @@ public class LedgerService {
         logsListDTO.setDeposit(bankAccountLogEx.getDeposit());
         logsListDTO.setWithdraw(bankAccountLogEx.getWithdraw());
         logsListDTO.setBalance(bankAccountLogEx.getBalance());
-        logsListDTO.setDate(bankAccountLogEx.getTransDT());
+        logsListDTO.setDate(cardLogEx.getUseDT());
         logsListDTO.setUseStoreName(cardLogEx.getUseStoreName());
         logsListDTO.setUseStoreCorpNum(cardLogEx.getUseStoreCorpNum());
         // 여기서 사업자번호를 URL에 넣고 Jsoup를 통해 보내야 함
@@ -242,8 +311,9 @@ public class LedgerService {
         if(tdElement != null){
             // <td> 태그의 텍스트 값을 가져옴
             String category = tdElement.text();
-            // 얻어온 카테고리 출력
-            System.out.println("Category: " + category);
+            if(category.equals("-")){
+                category = "기타";
+            }
             logsListDTO.setCategory(category); // 상점 업태
         }
         return logsListDTO;

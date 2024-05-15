@@ -89,4 +89,9 @@ public class LedgerController {
         // 근데 일단 실패를 봐야 하니까 아무 Account나 임의로 안에 넣어두고
         // logs 테스트 메소드 안에서만
     }
+
+    @GetMapping("/test")
+    public void test(){
+        ledgerService.fetchAndSaveLogs();
+    }
 }
