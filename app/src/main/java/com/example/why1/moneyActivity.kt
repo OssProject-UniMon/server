@@ -1,5 +1,6 @@
 package com.example.why1
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -44,6 +45,8 @@ class moneyActivity : AppCompatActivity() {
         mainlistview.adapter = accountadapter
         val act_btn = findViewById<Button>(R.id.btn_account_str)
         val mymoney = findViewById<TextView>(R.id.text1)
+        val myact = findViewById<TextView>(R.id.text2)
+        val myname = findViewById<TextView>(R.id.text3)
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
@@ -51,25 +54,22 @@ class moneyActivity : AppCompatActivity() {
         val ActService = retrofit.create(ManageService::class.java)
 
 
-
-        //엑티비티 실행 되자마자 값 가져오게함
-        act_btn.setOnClickListener {
             val dynamicUrl2 = "/account/account-logs?userId=$userId"
-            val call = ActService.act_list(dynamicUrl2,"20240401","20240405")
+            val call = ActService.act_list(dynamicUrl2,"20240501","20240516")
             call.enqueue(object : Callback<act_listResponse> {
                 override fun onResponse(call: Call<act_listResponse>, response: Response<act_listResponse>) {
                     val logs = response.body()?.log_list
-                    Log.d("Result: ", "Response: $logs")
+                    Log.d("moneyResult: ", "Response: $logs")
 
                     var count = 1
                     logs?.forEach { log ->
                         val depositOrWithdraw = if (log.deposit != "0") log.deposit else log.withdraw
                         val accountData = AccountData(
-                            "count$count",
-                            depositOrWithdraw,
-                            log.trans_dt,
-                            log.trans_type,
-                            log.trans_remark
+                            "count$count", //분류 태그 (여기에 카테고리가 와야함)
+                            depositOrWithdraw, //출금or입금금액
+                            log.date, // 날짜
+                            log.category, // !!여기를 밸런스(잔액)을 들어가게 하자!!
+                            log.useStoreName // 상호명
                         )
                         accountList.add(accountData)
                         count++
@@ -82,6 +82,10 @@ class moneyActivity : AppCompatActivity() {
                 }
             })
 
+
+        //계좌 연동하기 페이지 이동 버튼 누르면 연결하게 되있는데 수정이 필요
+        act_btn.setOnClickListener {
+
             val intent = Intent(this@moneyActivity, ActRegisterActivity::class.java)
             startActivity(intent)
         }
@@ -92,10 +96,14 @@ class moneyActivity : AppCompatActivity() {
         if (access_code == 0) {
             act_btn.visibility = View.VISIBLE
             mymoney.visibility = View.GONE
+            myact.visibility = View.GONE
+            myname.visibility = View.GONE
         } else if (access_code == 1) {
             // code가 1이면 버튼을 숨기고 텍스트뷰를 보여줌
             act_btn.visibility = View.GONE
             mymoney.visibility = View.VISIBLE
+            myact.visibility = View.VISIBLE
+            myname.visibility = View.VISIBLE
         }
 
 

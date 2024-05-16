@@ -9,23 +9,25 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import com.example.why1.databinding.ActivityActRegisterBinding
 import com.example.why1.appdata.AppData
 import com.example.why1.auth.NetworkConnection
+import com.example.why1.databinding.ActivityCardRegisterBinding
 import com.example.why1.retropit.JoinResponse
 import com.example.why1.retropit.ManageService
 import com.example.why1.retropit.act_RegisterRequest
+import com.example.why1.retropit.card_RegisterRequest
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ActRegisterActivity : AppCompatActivity() {
 
-    private lateinit var binding : ActivityActRegisterBinding
+class CardRegisterActivity : AppCompatActivity() {
+
+    private lateinit var binding : ActivityCardRegisterBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_act_register)
-        binding = DataBindingUtil.setContentView(this,R.layout.activity_act_register) //레이아웃 데이터 바인딩
+        setContentView(R.layout.activity_card_register)
+        binding = DataBindingUtil.setContentView(this,R.layout.activity_card_register) //레이아웃 데이터 바인딩
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
@@ -35,12 +37,12 @@ class ActRegisterActivity : AppCompatActivity() {
         val userid = AppData.S_userId //유저 아이디 불러오기
         var sp1_Result = ""
 
-        //뱅크 스피너
-        val moneyArray = resources.getStringArray(R.array.bank_array)
+        //카드 스피너
+        val moneyArray = resources.getStringArray(R.array.card_array)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, moneyArray)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spinnerBank.adapter = adapter
-        binding.spinnerBank.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        binding.spinnerCard.adapter = adapter
+        binding.spinnerCard.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // 선택된 항목에 대한 처리
                 sp1_Result = moneyArray[position]
@@ -51,28 +53,29 @@ class ActRegisterActivity : AppCompatActivity() {
             }
         }
 
-        binding.registerAct.setOnClickListener {
-
-            //계좌 연동하기, 일단 임시로 리퀘스트값 채웠음,버튼 누르면 서버통신 ,나중에 변수로 바꿔
-            val dynamicUrl = "/account/account-regist?userId=$userid"
-            val call = ActService.act_register(dynamicUrl, act_RegisterRequest("SHINHAN","P","110500411959", "4625","JKM2731","driermine4625.",""))
+        binding.registerCard.setOnClickListener {
+            //카드 연동하기
+            val dynamicUrl = "/account/card-regist?userId=$userid"
+            val call = ActService.card_register(dynamicUrl, card_RegisterRequest("SHINHAN","P","5107376798062092", "woalsdl7399","driermine7399!"))
             call.enqueue(object : Callback<JoinResponse> {
                 override fun onResponse(call: Call<JoinResponse>, response: Response<JoinResponse>) {
                     val serverResponse = response.body()
                     Toast.makeText(applicationContext, "등록 성공", Toast.LENGTH_SHORT).show()
-                    Log.d("account_Result", "Response: $serverResponse")
+                    Log.d("card_Result", "Response: $serverResponse")
                 }
 
                 override fun onFailure(call: Call<JoinResponse>, t: Throwable) {
                     Toast.makeText(applicationContext, "등록 실패", Toast.LENGTH_SHORT).show()
-                    Log.e("act_register", "Failed to send request to server. Error: ${t.message}")
+                    Log.e("card_register", "Failed to send request to server. Error: ${t.message}")
                 }
             })
             AppData.Access_code = 1 //등록되었을때 공용변수 업데이트, 나중에 등록성공했을때로 코드 올리셈
 
-            val intent = Intent(this@ActRegisterActivity, CardRegisterActivity::class.java)
+            val intent = Intent(this@CardRegisterActivity, moneyActivity::class.java)
             startActivity(intent)
         }
 
+        }
+
+
     }
-}

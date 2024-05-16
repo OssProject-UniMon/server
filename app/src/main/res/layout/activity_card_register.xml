@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ActRegisterActivity">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:background="@color/mainColor"
+            android:layout_height="100dp">
+
+            <LinearLayout
+                android:layout_width="108dp"
+                android:layout_height="28dp"
+                android:orientation="vertical" />
+
+            <TextView
+                android:text="카드 등록하기"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+            <TextView
+                android:text="카드 선택:"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="10dp"
+                android:gravity="left"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"/>
+            <Spinner
+                android:id="@+id/spinner_card"
+                android:layout_marginLeft="30dp"
+                android:layout_width="200dp"
+                android:layout_height="50dp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+            <TextView
+                android:text="카드번호:"
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="10dp"
+                android:gravity="left"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"/>
+            <EditText
+                android:id="@+id/card_num"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="카드번호를 입력하세요." />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+            <TextView
+                android:text="카드사 Web 아이디:"
+                android:layout_marginLeft="10dp"
+                android:gravity="left"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"/>
+            <EditText
+                android:id="@+id/card_id"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="카드 공식 web 아이디를 입력하세요." />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+            <TextView
+                android:text="카드사 Web 비밀번호:"
+                android:layout_marginLeft="10dp"
+                android:gravity="left"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"/>
+            <EditText
+                android:id="@+id/card_pw"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="카드 공식 web 비밀번호를 입력하세요." />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/register_card"
+                android:layout_marginLeft="50dp"
+                android:layout_marginBottom="20dp"
+                android:layout_width="300dp"
+                android:layout_height="50dp"
+                android:text="카드 등록하기"
+                android:textSize="18sp"
+                android:textColor="#ffffff"
+                android:background="@drawable/background_radius"
+                />
+        </LinearLayout>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</layout>

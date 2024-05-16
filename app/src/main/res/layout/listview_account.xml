@@ -15,6 +15,7 @@
             android:layout_width="110dp"
             android:layout_height="80dp"
             android:text="태그: 내용1"
+            android:textColor="@color/black"
             android:gravity="center_vertical"
             android:textSize="20sp"/>
 
@@ -33,12 +34,15 @@
                     android:id="@+id/price"
                     android:layout_width="150dp"
                     android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
                     android:text="가격"
                     android:textSize="23sp"/>
                 <TextView
                     android:id="@+id/buydate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
                     android:text="날짜"
                     android:layout_marginLeft="50dp"
                     android:textSize="23sp"/>
@@ -54,7 +58,8 @@
                     android:id="@+id/howbuy"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
-                    android:text="#체크카드"
+                    android:textStyle="bold"
+                    android:text="잔액"
                     android:textSize="20sp"/>
                 <TextView
                     android:id="@+id/storename"

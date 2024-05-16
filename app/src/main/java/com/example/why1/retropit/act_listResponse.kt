@@ -6,9 +6,9 @@ data class act_listitem(
     @SerializedName("deposit") val deposit: String, //입금
     @SerializedName("withdraw") val withdraw: String, //출금, 즉 가격
     @SerializedName("balance") val balance: String, //결제 후 잔고
-    @SerializedName("trans_dt") val trans_dt: String, //결제일
-    @SerializedName("trans_type") val trans_type: String, //결제방식
-    @SerializedName("trans_remark") val trans_remark: String //결제기관
+    @SerializedName("date") val date: String, //결제일
+    @SerializedName("useStoreName") val useStoreName: String, //카테고리, 즉 분류된 결과
+    @SerializedName("category") val category: String //결제기관
 )
 
 data class act_listResponse(

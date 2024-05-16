@@ -19,4 +19,7 @@ interface ManageService {
 
     @GET
     fun act_list(@Url url: String, @Query("start_date") start_date: String, @Query("end_date") end_date: String): Call<act_listResponse>
+
+    @POST
+    fun card_register(@Url url: String, @Body credential: card_RegisterRequest): Call<JoinResponse>
 }

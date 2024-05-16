@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="bank_array">
+    <string-array name="card_array">
         <item>KB</item>
         <item>SHINHAN</item>
         <item>NH</item>
         <item>HANA</item>
         <item>WOORI</item>
-        <item>IBK</item>
-        <item>기업</item>
-        <item>산업</item>
-        <item>새마을금고</item>
+        <item>BC</item>
     </string-array>
 </resources>
