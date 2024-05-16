@@ -22,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -122,7 +121,7 @@ public class LedgerService {
         return 0;
     }
 
-    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
+    @Scheduled(cron = "0 0 16 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
     public void fetchAndSaveLogs(){
         List<User> users = userRepository.findAll();
         log.info("users : {}",users);
