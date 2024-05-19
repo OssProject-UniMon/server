@@ -6,6 +6,9 @@ import com.baroservice.ws.BankAccountLogEx;
 import com.baroservice.ws.CardLogEx;
 import com.baroservice.ws.PagedBankAccountLogEx;
 import com.baroservice.ws.PagedCardLogEx;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dongguk.capstone.backend.accountdto.*;
 import dongguk.capstone.backend.domain.Account;
 import dongguk.capstone.backend.domain.Card;
@@ -22,31 +25,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.beans.factory.annotation.Value; // application.properties 파일의 값을 사용하려면 이 Value 애노테이션 사용해야 됨
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-
 
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
 @Slf4j
 public class LedgerService {
 
+    @Value("${openai.api.key}")
+    private String apikey; // 연동할 chat gpt assistant api의 api key
+
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final CardRepository cardRepository;
     private final LogRepository logRepository;
     private final BarobillApiService barobillApiService;
+
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
         barobillApiService = new BarobillApiService(BarobillApiProfile.TESTBED);
@@ -55,6 +63,49 @@ public class LedgerService {
         this.cardRepository = cardRepository;
         this.logRepository = logRepository;
     }
+
+    public JsonNode callChatGpt(String userMsg) throws JsonProcessingException{
+        final String url = "https://api.openai.com/v1/chat/completions";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apikey);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        Map<String, Object> bodyMap = getStringObjectMap(userMsg);
+
+        String body = objectMapper.writeValueAsString(bodyMap);
+
+        HttpEntity<String> request = new HttpEntity<>(body,headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
+        return objectMapper.readTree(response.getBody());
+    }
+
+    private static Map<String, Object> getStringObjectMap(String userMsg) {
+        Map<String,Object> bodyMap = new HashMap<>();
+        bodyMap.put("model","gpt-4");
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        Map<String, String> userMessage = new HashMap<>();
+        userMessage.put("role","user");
+        userMessage.put("content", userMsg);
+        messages.add(userMessage);
+
+        Map<String, String> assistantMesssage = new HashMap<>();
+        assistantMesssage.put("role","system");
+        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
+                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
+        messages.add(assistantMesssage);
+
+        bodyMap.put("messages",messages);
+        return bodyMap;
+    }
+
 
     /**
      * 계좌 등록 로직
@@ -121,7 +172,7 @@ public class LedgerService {
         return 0;
     }
 
-    @Scheduled(cron = "0 0 16 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
+    @Scheduled(cron = "0 0 15 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
     public void fetchAndSaveLogs(){
         List<User> users = userRepository.findAll();
         log.info("users : {}",users);
@@ -143,15 +194,14 @@ public class LedgerService {
             log.info("startDate : {}",startDate);
 
             // 종료일은 오늘 날짜로 설정
-            LocalDate endDate = today;
-            log.info("endDate : {}",endDate);
+            log.info("endDate : {}", today);
 
             // 시작일을 LocalDateTime으로 변환하고 시간을 00:00:00으로 설정
             LocalDateTime startDateTime = startDate.atStartOfDay();
             log.info("startDateTime : {}",startDateTime);
 
             // 종료일을 LocalDateTime으로 변환하고 시간을 23:59:59로 설정
-            LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+            LocalDateTime endDateTime = today.atTime(23, 59, 59);
             log.info("startDateTime : {}",startDateTime);
 
             String startDateString = startDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -160,7 +210,7 @@ public class LedgerService {
 
             // 포맷터를 사용하여 LocalDateTime을 String으로 변환
             log.info("startDateString : {}",startDate);
-            log.info("endDateString : {}",endDate);
+            log.info("endDateString : {}", today);
 
             for(Account acc : accounts){
                 if(user.getUser_id().equals(acc.getUser().getUser_id())){
@@ -187,7 +237,7 @@ public class LedgerService {
                 // 바로빌 API를 사용하여 계좌 조회
                 PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
                         "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 20, 1, 2);
+                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 100, 1, 2);
 
                 log.info("accountLog : {}",accountLog);
 
@@ -195,7 +245,7 @@ public class LedgerService {
                 // 바로빌 API를 사용하여 카드 조회
                 PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
                         "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 20, 1, 2);
+                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 100, 1, 2);
 
                 log.info("cardLog : {}",cardLog);
 
@@ -246,38 +296,24 @@ public class LedgerService {
      * @param userId
      * @return
      */
-    public LogsResponseDTO log(Long userId, LogsRequestDTO logsRequestDTO) {
+    public LogsResponseDTO log(Long userId) {
         LogsResponseDTO logsResponseDTO = new LogsResponseDTO(); // 거래 내역 로그 응답
-        log.info("logsRequestDTO : {}", logsRequestDTO);
 
         List<Log> logs = logRepository.findAll();
         List<LogsListDTO> list = new ArrayList<>();
-        // 시작일과 종료일을 LogsRequestDTO에서 가져옴
-        LocalDate startDate = LocalDate.parse(logsRequestDTO.getStartDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LocalDate endDate = LocalDate.parse(logsRequestDTO.getEndDate(), DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        log.info("startDate : {}", startDate);
-        log.info("endDate : {}", endDate);
 
         log.info("logs : {}", logs);
 
         for (Log l : logs) {
             if (userId.equals(l.getLogEmbedded().getUserId())) {
-                log.info("l.getLogEmbedded().getUserId() : {}",l.getLogEmbedded().getUserId());
-                LocalDateTime logDateTime = LocalDateTime.parse(l.getDate(), DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-                LocalDate logDate = logDateTime.toLocalDate(); // LocalDateTime을 LocalDate로 변환
-                log.info("logDateTime : {}",logDateTime);
-                log.info("logDate : {}",logDate);
-                if (!logDate.isBefore(startDate) && !logDate.isAfter(endDate)) {
-                    LogsListDTO logsListDTO = new LogsListDTO();
-                    logsListDTO.setDeposit(l.getDeposit());
-                    logsListDTO.setWithdraw(l.getWithdraw());
-                    logsListDTO.setBalance(l.getBalance());
-                    logsListDTO.setDate(l.getDate());
-                    logsListDTO.setUseStoreName(l.getUseStoreName());
-                    logsListDTO.setCategory(l.getCategory());
-                    list.add(logsListDTO);
-                }
+                LogsListDTO logsListDTO = new LogsListDTO();
+                logsListDTO.setDeposit(l.getDeposit());
+                logsListDTO.setWithdraw(l.getWithdraw());
+                logsListDTO.setBalance(l.getBalance());
+                logsListDTO.setDate(l.getDate());
+                logsListDTO.setUseStoreName(l.getUseStoreName());
+                logsListDTO.setCategory(l.getCategory());
+                list.add(logsListDTO);
             }
         }
         logsResponseDTO.setLogList(list);
@@ -299,6 +335,7 @@ public class LedgerService {
         // 여기서 사업자번호를 URL에 넣고 Jsoup를 통해 보내야 함
         // URL 인코딩
         String encodedCorpNum = URLEncoder.encode(cardLogEx.getUseStoreCorpNum(), "UTF-8");
+        log.info("cardLogEx.getUseStoreCorpNum() : {}",cardLogEx.getUseStoreCorpNum());
         String url = "https://bizno.net/article/" + encodedCorpNum;
         // Jsoup를 통해 URL에 접속하고 웹 페이지를 가져옴
         // Jsoup를 사용하여 HTML 문서 파싱
@@ -306,15 +343,47 @@ public class LedgerService {
         // 선택한 요소에 대한 CSS 선택자를 사용하여 특정 요소 선택
         Element thElement = doc.select("th:contains(종목)").first();
         // 선택한 요소의 형제인 <td> 태그를 선택
-        Element tdElement = thElement.nextElementSibling();
-        if(tdElement != null){
-            // <td> 태그의 텍스트 값을 가져옴
-            String category = tdElement.text();
-            if(category.equals("-")){
-                category = "기타";
+        if(thElement==null){
+            logsListDTO.setCategory("기타");
+        }else {
+            Element tdElement = thElement.nextElementSibling();
+            log.info("tdElement : {}", tdElement);
+            if (tdElement != null) {
+                // <td> 태그의 텍스트 값을 가져옴
+                String category = tdElement.text();
+                if (category.equals("-")) {
+                    logsListDTO.setCategory("기타");
+                } else {
+                    // GPT 호출
+                    try {
+                        JsonNode gptResponse = callChatGpt(category);
+                        String gptCategory = gptResponse.path("choices").get(0).path("message").path("content").asText();
+                        log.info("gptCategory : {}", gptCategory);
+                        logsListDTO.setCategory(gptCategory);
+                    } catch (JsonProcessingException e) {
+                        log.error("JsonProcessingException occurred: {}", e.getMessage());
+                    }
+                }
             }
-            logsListDTO.setCategory(category); // 상점 업태
         }
+//        if(thElement==null){
+//            log.info("doc : {}",doc);
+//            logsListDTO.setCategory("기타");
+//        }else {
+//            Element tdElement = thElement.nextElementSibling();
+//            log.info("tdElement : {}", tdElement);
+//            if (tdElement != null) {
+//                // <td> 태그의 텍스트 값을 가져옴
+//                String category = tdElement.text();
+//                if (category.equals("-")) {
+//                    logsListDTO.setCategory("기타");
+//                } else {
+//                    log.info("gptCategory : {}", category);
+//                    logsListDTO.setCategory(category);
+//
+//                }
+//            }
+//        }
         return logsListDTO;
     }
 
@@ -338,6 +407,7 @@ public class LedgerService {
         logEntity.setBalance(logsListDTO.getBalance());
         logEntity.setDate(logsListDTO.getDate());
         logEntity.setUseStoreName(logsListDTO.getUseStoreName());
+        log.info("logsListDTO.getUseStoreName() : {}",logsListDTO.getUseStoreName());
         logEntity.setCategory(logsListDTO.getCategory());
         return logEntity;
     }

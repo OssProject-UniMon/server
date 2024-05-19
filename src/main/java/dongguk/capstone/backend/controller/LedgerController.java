@@ -61,11 +61,10 @@ public class LedgerController {
     /**
      * 거래 내역 조회
      * @param userId
-     * @param logsRequestDTO
      * @return
      */
-    @PostMapping("/logs")
-    public ResponseEntity<LogsResponseDTO> log(@RequestParam("userId") Long userId, @RequestBody LogsRequestDTO logsRequestDTO) {
+    @GetMapping("/logs")
+    public ResponseEntity<LogsResponseDTO> log(@RequestParam("userId") Long userId) {
         // !!!!!!!!!!!!!!! 고치자 !!!!!!!!!!!!!!!
         // 내가 보기엔 accountRegist 메소드를 호출할 당시에는 accountRegistRequestDTO에 값이 있지만,
         // 그 이후에 log 메소드에서 사용할 때는 값이 적용되지 않아서 null 값이다.
@@ -75,8 +74,7 @@ public class LedgerController {
 //        log.info("logs", accountRegistRequestDTO); // null
 //        log.info("logs", cardRegistRequestDTO); // null
         // 아 여기서 accountRegistRequestDTO 이거랑 cardRegistRequestDTO 이거 쓰면 안되는건가?
-        log.info("logsRequestDTO : {}", logsRequestDTO);
-        LogsResponseDTO logsResponseDTO = ledgerService.log(userId, logsRequestDTO);
+        LogsResponseDTO logsResponseDTO = ledgerService.log(userId);
         // 만약 accountLogResponseDTO가 존재한다면, 200 ok 와 body로 accountLogsResponseDTO 전해주기
 //        if(accountLogsResponseDTO!=null)
 //            return ResponseEntity.ok().body(accountLogsResponseDTO);
