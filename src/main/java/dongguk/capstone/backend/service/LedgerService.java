@@ -98,8 +98,9 @@ public class LedgerService {
 
         Map<String, String> assistantMesssage = new HashMap<>();
         assistantMesssage.put("role","system");
-        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
-                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
+//        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
+//                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
+        assistantMesssage.put("content","");
         messages.add(assistantMesssage);
 
         bodyMap.put("messages",messages);
@@ -233,7 +234,6 @@ public class LedgerService {
 
 
                 // startDateString, endDateString이 바로빌에서 원하는 요청 데이터 형태랑 다른 듯???
-                // 지금은 startDateString : 2024-02-15, endDateString : 2024-05-15 인데 바로빌에서 원하는건 String startDate = "20240407"; String endDate = "20240408"; 이다.
                 // 바로빌 API를 사용하여 계좌 조회
                 PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
                         "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
