@@ -39,7 +39,7 @@ class LoginActivity : AppCompatActivity() {
         val loginbtn = findViewById<Button>(R.id.login1)
 
         val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://52.79.154.36:443") //secure무시, 리트로핏 통신까지
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://4b3e-112-171-58-99.ngrok-free.app") //secure무시, 리트로핏 통신까지
 
         val TestService = retrofit.create(ManageService::class.java)
 

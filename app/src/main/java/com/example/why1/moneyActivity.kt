@@ -46,25 +46,25 @@ class moneyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_money)
 
-        accountList.add(sampleData1)
-        accountList.add(sampleData2)
-        accountList.add(sampleData3)
-        accountList.add(sampleData4)
-        accountList.add(sampleData5)
-        accountList.add(sampleData6)
-        accountList.add(sampleData7)
-        accountList.add(sampleData8)
-        accountList.add(sampleData9)
-        accountList.add(sampleData10)
+        //accountList.add(sampleData1)
+        //accountList.add(sampleData2)
+        //accountList.add(sampleData3)
+        //accountList.add(sampleData4)
+        //accountList.add(sampleData5)
+        //accountList.add(sampleData6)
+        //accountList.add(sampleData7)
+        //accountList.add(sampleData8)
+        //accountList.add(sampleData9)
+        //accountList.add(sampleData10)
         val access_code = AppData.Access_code // 공용변수 엑세스 코드 불러오기
         val userId = AppData.S_userId // 공용변수 유저 아이디 불러오기
         Log.d("access_code", "code::Response: $access_code")
         Log.d("userId", "code::Response: $userId")
 
         //리스트 레아이웃 처리
-        val mainlistview = findViewById<ListView>(R.id.moneyListView)
-        val accountadapter = Accountadapter(this, accountList)
-        mainlistview.adapter = accountadapter
+        //val mainlistview = findViewById<ListView>(R.id.moneyListView)
+        //val accountadapter = Accountadapter(this, accountList)
+        //mainlistview.adapter = accountadapter
         //레이아웃 처리
         val act_btn = findViewById<Button>(R.id.btn_account_str)
         val mymoney = findViewById<TextView>(R.id.text1)
@@ -100,15 +100,15 @@ class moneyActivity : AppCompatActivity() {
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://52.79.154.36:443")
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://4b3e-112-171-58-99.ngrok-free.app")
         val ActService = retrofit.create(ManageService::class.java)
 
 
-            val dynamicUrl2 = "/account/logs?userId=$userId"
+            val dynamicUrl2 = "/account/test?userId=$userId"
             val call = ActService.act_list(dynamicUrl2)
             call.enqueue(object : Callback<act_listResponse> {
                 override fun onResponse(call: Call<act_listResponse>, response: Response<act_listResponse>) {
-                    val logs = response.body()?.log_list
+                    val logs = response.body()?.logList
                     Log.d("moneyResult: ", "Response: $logs")
 
                     var count = 1
@@ -124,6 +124,14 @@ class moneyActivity : AppCompatActivity() {
                         accountList.add(accountData)
                         count++
                     }
+                    // 배열에 잘 들어갔는지 확인하는 로그 출력
+                    Log.d("accountList", "Size: ${accountList.size}")
+                    accountList.forEachIndexed { index, accountData ->
+                        Log.d("accountList", "Item $index: $accountData")}
+
+                    val mainlistview = findViewById<ListView>(R.id.moneyListView)
+                    val accountadapter = Accountadapter(this@moneyActivity, accountList)
+                    mainlistview.adapter = accountadapter
                 }
 
                 override fun onFailure(call: Call<act_listResponse>, t: Throwable) {
@@ -131,7 +139,6 @@ class moneyActivity : AppCompatActivity() {
                     Log.e("act_showlist", "Failed to send request to server. Error: ${t.message}")
                 }
             })
-
 
         //계좌 연동하기 페이지 이동
         act_btn.setOnClickListener {
@@ -143,14 +150,14 @@ class moneyActivity : AppCompatActivity() {
 
 
         //통신 성공하면 연결 버튼 사라지게 하는거
-        if (access_code == 1) {
+        if (access_code == 0) {
             act_btn.visibility = View.VISIBLE
             mymoney.visibility = View.GONE
             myact.visibility = View.GONE
             myname.visibility = View.GONE
             setting.visibility = View.GONE
             new_btn.visibility = View.GONE
-        } else if (access_code == 0) {
+        } else if (access_code == 1) {
             // code가 1이면 버튼을 숨기고 텍스트뷰를 보여줌
             act_btn.visibility = View.GONE
             mymoney.visibility = View.VISIBLE

@@ -31,7 +31,7 @@ class CardRegisterActivity : AppCompatActivity() {
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://52.79.154.36:443")
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://5231-112-171-58-99.ngrok-free.app")
         val ActService = retrofit.create(ManageService::class.java)
 
         val userid = AppData.S_userId //유저 아이디 불러오기

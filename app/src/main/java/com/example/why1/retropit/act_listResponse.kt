@@ -12,5 +12,5 @@ data class act_listitem(
 )
 
 data class act_listResponse(
-        @SerializedName("log_list") val log_list: List<act_listitem>
+        @SerializedName("logList") val logList: List<act_listitem>
         )
