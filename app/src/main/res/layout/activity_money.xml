@@ -28,7 +28,7 @@
                 android:textSize="20sp"
                 android:textColor="#ffffff"
                 android:background="@drawable/background_radius"
-                android:visibility="visible"
+                android:visibility="gone"
                 />
         </LinearLayout>
 
@@ -39,16 +39,14 @@
 
             <TextView
                 android:id="@+id/text2"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="150dp"
-                android:layout_marginTop="5dp"
-                android:gravity="left"
-                android:text="xxx의 통장"
+                android:gravity="center"
+                android:text="정재민님의 통장"
                 android:textSize="25sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:visibility="gone" />
+                android:visibility="visible" />
         </LinearLayout>
 
         <LinearLayout
@@ -63,9 +61,9 @@
                 android:layout_marginLeft="130dp"
                 android:layout_marginTop="5dp"
                 android:gravity="left"
-                android:text="xxxxx-xx-xxxxxxx"
+                android:text="1105-00-411959"
                 android:textSize="20sp"
-                android:visibility="gone" />
+                android:visibility="visible" />
         </LinearLayout>
 
         <LinearLayout
@@ -80,11 +78,40 @@
                 android:layout_marginLeft="130dp"
                 android:layout_marginTop="5dp"
                 android:gravity="left"
-                android:text="540,230원"
+                android:text="469,029원"
                 android:textSize="35sp"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:visibility="gone" />
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/renew"
+                android:layout_marginLeft="50dp"
+                android:layout_marginBottom="20dp"
+                android:layout_width="150dp"
+                android:layout_height="50dp"
+                android:text="새로고침"
+                android:textSize="18sp"
+                android:textColor="#ffffff"
+                android:background="@drawable/background_radius"
+                android:visibility="visible"
+                />
+
+            <Spinner
+                android:id="@+id/spinner_setting"
+                android:background="@drawable/background_radius"
+                android:layout_marginLeft="30dp"
+                android:layout_width="150dp"
+                android:layout_height="50dp"
+                android:visibility="visible"/>
+
         </LinearLayout>
 
 
@@ -93,7 +120,7 @@
             android:layout_height="2.5dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="10dp"
             android:background="#000000"/>
 
         <ListView

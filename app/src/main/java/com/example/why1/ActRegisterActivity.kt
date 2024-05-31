@@ -43,7 +43,7 @@ class ActRegisterActivity : AppCompatActivity() {
         binding.spinnerBank.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // 선택된 항목에 대한 처리
-                sp1_Result = moneyArray[position]
+                sp1_Result = moneyArray[position] //은행 종류(bank)
                 Toast.makeText(applicationContext, "(테스트)선택된 항목: $sp1_Result", Toast.LENGTH_SHORT).show()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -52,6 +52,15 @@ class ActRegisterActivity : AppCompatActivity() {
         }
 
         binding.registerAct.setOnClickListener {
+
+            //레이아웃에서 값 가져오기
+            val actnum = binding.actNum.text.toString()
+            val back_p = binding.passwordBank.text.toString()
+            val fast_i = binding.fastId.text.toString()
+            val fast_p = binding.fastPw.text.toString()
+            val my_num = binding.myNum.text.toString()
+            //값 가져온거 계좌번호만 앱데이터에 업데이트
+            AppData.bank_num = actnum
 
             //계좌 연동하기, 일단 임시로 리퀘스트값 채웠음,버튼 누르면 서버통신 ,나중에 변수로 바꿔
             val dynamicUrl = "/account/account-regist?userId=$userid"

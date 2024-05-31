@@ -54,6 +54,12 @@ class CardRegisterActivity : AppCompatActivity() {
         }
 
         binding.registerCard.setOnClickListener {
+
+            //레이아웃에서 값 받아오기
+            val cardnum = binding.cardNum.text.toString()
+            val c_webid = binding.cardId.text.toString()
+            val c_webpw = binding.cardPw.text.toString()
+
             //카드 연동하기
             val dynamicUrl = "/account/card-regist?userId=$userid"
             val call = ActService.card_register(dynamicUrl, card_RegisterRequest("SHINHAN","P","5107376798062092", "woalsdl7399","driermine7399!"))

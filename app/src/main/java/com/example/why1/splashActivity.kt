@@ -11,12 +11,24 @@ class splashActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+        val admin_code = 1
 
         //화면 3초뒤에 설정한 엑티비티로 넘어가게 하는 코드
-        Handler().postDelayed(
-            {
-            startActivity(Intent(this, IntroActivity::class.java))
-            finish()
-        }, 3000)
+        if(admin_code == 0) {
+            Handler().postDelayed(
+                {
+                    startActivity(Intent(this, IntroActivity::class.java))
+                    finish()
+                }, 3000
+            )
+        }
+        else {
+            Handler().postDelayed(
+                {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                }, 3000
+            )
+        }
     }
 }

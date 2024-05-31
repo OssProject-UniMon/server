@@ -30,7 +30,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="nickname님 환영합니다!"
+            android:text="herbysw님 환영합니다!"
             android:layout_marginLeft="15dp"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -61,7 +61,7 @@
                 android:layout_marginRight="20dp"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
-                android:text="계좌 연결"
+                android:text="계좌 확인"
                 android:textSize="20sp"
                 android:textColor="#ffffff"
                 android:background="@drawable/background_radius"
