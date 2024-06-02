@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -60,79 +62,12 @@ public class UserController {
 
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO){
-        // 1. loginRequestDTO로 먼저 email이 DB에 있는지 확인 후, 그 email을 이용해 User 객체 생성
-        // 2. 그 User 객체 참조변수를 통해 메소드로 DB에서 그 객체의 비밀번호와(참조변수.getPassword) loginRequestDTO의 password가 같은지 확인
-
-        // 로그인 시 사용자가 이메일 또는 비밀번호를 입력하지 않았을 경우 처리 (isBlank()를 통해 모든 빈 칸 처리 가능)
-        if(loginRequestDTO.getEmail().isBlank()||loginRequestDTO.getPassword().isBlank()){
-            return new LoginResponseDTO(2,null);
-        }
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-
-        // 로그인 시 사용자가 이메일 또는 비밀번호를 전부 입력했을 경우
-        Optional<User> user = userRepository.findByEmail(loginRequestDTO.getEmail());
-        if(user.isPresent()){    // 만약 입력받은 email을 가진 User가 DB에 존재한다면
-            log.info(user.get().getEmail()); // 그 User의 이메일 로그로 찍어보기
-            if(loginRequestDTO.getPassword().equals(user.get().getPassword())){  // 그 User의 DB에 있는 비밀번호와 입력한 비밀번호를 비교
-                return new LoginResponseDTO(1, user.get().getUser_id()); // 바꾸기
-            }else{  // 비밀번호 잘못 입력한 경우
-                return new LoginResponseDTO(0, null); // 바꾸기
-            }
-        }else{  // 이메일이 DB에 없을 경우(이메일 잘못 입력한 경우)
-            return new LoginResponseDTO(0, null); // 바꾸기
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        LoginResponseDTO loginResponseDTO = userService.login(loginRequestDTO);
+        if (loginResponseDTO.getServerCode() == 1) {
+            return ResponseEntity.ok(loginResponseDTO);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(loginResponseDTO);
         }
     }
-
-//    @PostMapping("/signup")
-//    public ResponseEntity<UserResponseDTO> signup(@Valid @RequestBody SignupRequestDTO signupRequestDTO){  // HTTP를 활용한 JSON 형식의 request를 받으려면, @RequestBody가 필요하다!!!
-//        // User user = userService.save(signupRequestDTO);
-//        userService.save(signupRequestDTO);
-//        HttpHeaders httpHeaders = new HttpHeaders();
-//        // 이게 된다면, BackendAdvice에도 ResponseEntity 적용하자
-//        return ResponseEntity.ok(new UserResponseDTO(1));
-//    }
-//
-//    @GetMapping("/{email}/check")
-//    public ResponseEntity<UserResponseDTO> signupCheck(@PathVariable(name = "email") String email){
-//        HttpHeaders httpHeaders = new HttpHeaders();
-//        if(userRepository.findByEmail(email).isEmpty()){
-//            return ResponseEntity.ok(new UserResponseDTO(1));
-//        }else{
-//            return ResponseEntity.badRequest()
-//                    .headers(httpHeaders)
-//                    .body(new UserResponseDTO(0));
-//        }
-//    }
-//
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<UserResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO){
-//        // 1. loginRequestDTO로 먼저 email이 DB에 있는지 확인 후, 그 email을 이용해 User 객체 생성
-//        // 2. 그 User 객체 참조변수를 통해 메소드로 DB에서 그 객체의 비밀번호와(참조변수.getPassword) loginRequestDTO의 password가 같은지 확인
-//
-//        // 로그인 시 사용자가 이메일 또는 비밀번호를 입력하지 않았을 경우 처리 (isBlank()를 통해 모든 빈 칸 처리 가능)
-//        if(loginRequestDTO.getEmail().isBlank()||loginRequestDTO.getPassword().isBlank()){
-//            return ResponseEntity.badRequest()
-//                    .body(new UserResponseDTO(2));
-//        }
-//
-//        HttpHeaders httpHeaders = new HttpHeaders();
-//
-//        // 로그인 시 사용자가 이메일 또는 비밀번호를 전부 입력했을 경우
-//        Optional<User> user = userRepository.findByEmail(loginRequestDTO.getEmail());
-//        if(user.isPresent()){    // 만약 입력받은 email을 가진 User가 DB에 존재한다면
-//            log.info(user.get().getEmail()); // 그 User의 이메일 로그로 찍어보기
-//            if(loginRequestDTO.getPassword().equals(user.get().getPassword())){  // 그 User의 DB에 있는 비밀번호와 입력한 비밀번호를 비교
-//                return ResponseEntity.ok(new UserResponseDTO(1)); // 바꾸기
-//            }else{  // 비밀번호 잘못 입력한 경우
-//                return ResponseEntity.badRequest()
-//                        .body(new UserResponseDTO(0)); // 바꾸기
-//            }
-//        }else{  // 이메일이 DB에 없을 경우(이메일 잘못 입력한 경우)
-//            return ResponseEntity.badRequest()
-//                    .body(new UserResponseDTO(0)); // 바꾸기
-//        }
-//    }
 }

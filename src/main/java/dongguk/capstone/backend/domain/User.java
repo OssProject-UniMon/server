@@ -30,6 +30,7 @@ public class User {
 
     private double grade;
 
+    @Column(length = 50)
     private String gender;
 
     // MySQL에서는 칼럼명을 Snake Case를 사용한다.
@@ -47,14 +48,22 @@ public class User {
     @Column(length = 45)
     private String district;
 
-    @Column(name = "schedule_hour")
-    private int scheduleHour;
+    @Column(name = "account_status")
+    private int accountStatus;
 
-    @Column(name = "schedule_minute")
-    private int scheduleMinute;
+    @Column(name = "card_status")
+    private int cardStatus;
+
+//    @Column(name = "schedule_hour")
+//    private int scheduleHour;
+//
+//    @Column(name = "schedule_minute")
+//    private int scheduleMinute;
 
     // 이걸 어떻게 해야되지
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Account> accounts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Card> cards = new ArrayList<>();
 }

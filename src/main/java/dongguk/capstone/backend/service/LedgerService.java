@@ -173,7 +173,7 @@ public class LedgerService {
         return 0;
     }
 
-    @Scheduled(cron = "0 0 15 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행, cron(크론) 표현식은 분, 시간, 날짜, 월, 요일, 년도 순서대로 필드를 가지며, 각 필드는 공백으로 구분
     public void fetchAndSaveLogs(){
         List<User> users = userRepository.findAll();
         log.info("users : {}",users);
@@ -366,24 +366,6 @@ public class LedgerService {
                 }
             }
         }
-//        if(thElement==null){
-//            log.info("doc : {}",doc);
-//            logsListDTO.setCategory("기타");
-//        }else {
-//            Element tdElement = thElement.nextElementSibling();
-//            log.info("tdElement : {}", tdElement);
-//            if (tdElement != null) {
-//                // <td> 태그의 텍스트 값을 가져옴
-//                String category = tdElement.text();
-//                if (category.equals("-")) {
-//                    logsListDTO.setCategory("기타");
-//                } else {
-//                    log.info("gptCategory : {}", category);
-//                    logsListDTO.setCategory(category);
-//
-//                }
-//            }
-//        }
         return logsListDTO;
     }
 

@@ -89,7 +89,9 @@ public class LedgerController {
     }
 
     @GetMapping("/test")
-    public void test(){
-        ledgerService.fetchAndSaveLogs();
+    public LogsResponseDTO test(@RequestParam("userId") Long userId){
+//        ledgerService.fetchAndSaveLogs(); // 데베에 거래 내역 들어감
+        LogsResponseDTO logsResponseDTO = ledgerService.log(userId); // 데베에서 거래 내역 가져 오기
+        return logsResponseDTO;
     }
 }

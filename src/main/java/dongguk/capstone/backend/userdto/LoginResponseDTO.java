@@ -10,4 +10,7 @@ import lombok.Setter;
 public class LoginResponseDTO {
     private final int serverCode;
     private final Long userId;
+    private final String nickname;
+    private final int accountStatus;
+    private final int cardStatus;
 }
