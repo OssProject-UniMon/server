@@ -27,6 +27,9 @@ import com.example.why1.appdata.AppData
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class moneyActivity : AppCompatActivity() {
 
@@ -100,7 +103,7 @@ class moneyActivity : AppCompatActivity() {
 
         //secure무시, 리트로핏 통신까지
         val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://4b3e-112-171-58-99.ngrok-free.app")
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://43.202.82.18:443")
         val ActService = retrofit.create(ManageService::class.java)
 
 
@@ -113,11 +116,12 @@ class moneyActivity : AppCompatActivity() {
 
                     var count = 1
                     logs?.forEach { log ->
-                        val depositOrWithdraw = if (log.deposit != "0") "+"+log.deposit else "-"+log.withdraw
+                        val depositOrWithdraw = if (log.deposit != "0") "+"+log.deposit+"원" else "-"+log.withdraw+"원"
+                        val formattedDate = parseDate(log.date) // 날짜 형식을 적절히 변환
                         val accountData = AccountData(
                             log.category, //분류 태그 (여기에 카테고리가 와야함)
                             depositOrWithdraw, //출금or입금금액
-                            log.date, // 날짜
+                            formattedDate, // 날짜
                             log.balance, // !!여기를 밸런스(잔액)을 들어가게 하자!!
                             log.useStoreName // 상호명
                         )
@@ -150,14 +154,14 @@ class moneyActivity : AppCompatActivity() {
 
 
         //통신 성공하면 연결 버튼 사라지게 하는거
-        if (access_code == 0) {
+        if (access_code == 1) {
             act_btn.visibility = View.VISIBLE
             mymoney.visibility = View.GONE
             myact.visibility = View.GONE
             myname.visibility = View.GONE
             setting.visibility = View.GONE
             new_btn.visibility = View.GONE
-        } else if (access_code == 1) {
+        } else if (access_code == 0) {
             // code가 1이면 버튼을 숨기고 텍스트뷰를 보여줌
             act_btn.visibility = View.GONE
             mymoney.visibility = View.VISIBLE
@@ -170,5 +174,18 @@ class moneyActivity : AppCompatActivity() {
 
 
 
+    }
+
+    // 날짜 형식을 변환하는 함수
+    private fun parseDate(dateString: String): String {
+        return try {
+            val inputFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("MM/dd", Locale.getDefault())
+            val date = inputFormat.parse(dateString)
+            outputFormat.format(date)
+        } catch (e: ParseException) {
+            Log.e("DateParseError", "Failed to parse date: $dateString")
+            dateString // 파싱에 실패하면 원래 문자열을 반환
+        }
     }
 }

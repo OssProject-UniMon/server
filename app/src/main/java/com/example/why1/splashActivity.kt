@@ -11,7 +11,7 @@ class splashActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-        val admin_code = 1
+        val admin_code = 0
 
         //화면 3초뒤에 설정한 엑티비티로 넘어가게 하는 코드
         if(admin_code == 0) {

@@ -23,9 +23,9 @@ class ScholarActivity : AppCompatActivity() {
 
     private fun getData(): List<S_data> {
         return listOf(
-            S_data("Title 1", "2024-06-01", "Content 1"),
-            S_data("Title 2", "2024-06-02", "Content 2"),
-            S_data("Title 3", "2024-06-03", "Content 3")
+            S_data("Title 1", "2024-06-01", "Content 1",arrayOf("지원대상1", "지원내용1", "신청기간1", "신청방법1")),
+            S_data("Title 2", "2024-06-02", "Content 2",arrayOf("지원대상1", "지원내용1", "신청기간1", "신청방법1")),
+            S_data("Title 3", "2024-06-03", "Content 3",arrayOf("지원대상1", "지원내용1", "신청기간1", "신청방법1"))
         )
     }
 }
