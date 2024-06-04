@@ -18,4 +18,7 @@ public interface AccountRepository extends JpaRepository<Account, AccountEmbedde
     // => : 기호는 Spring Data JPA에서 사용되는 Named Parameter(이름이 지정된 매개변수)를 나타냅니다. 이것은 쿼리의 매개변수를 식별하는 데 사용됩니다.
     // => 쿼리 내부에서 :userId와 :bankAccountNum은 실제 매개변수 값으로 대체됩니다.
     Optional<Account> findByUserIdAndBankAccountNum(@Param("userId") Long userId, @Param("bankAccountNum") String bankAccountNum);
+
+    @Query("SELECT a FROM Account a WHERE a.accountEmbedded.userId = :userId")
+    Optional<Account> findByUserId(@Param("userId") Long userId);
 }

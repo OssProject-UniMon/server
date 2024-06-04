@@ -37,12 +37,13 @@ public class BarobillCardTests {
      * </p>
      */
 
+    @Test
     public void registCard() {
         String certKey = "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03";
         String corpNum = "2018204468";
         String cardCompany = "SHINHAN";
         String cardType = "P";
-        String cardNum = "5107376798062092";
+        String cardNum = "4890230019175114";
         String webId = "woalsdl7399";
         String webPwd = "driermine7399!";
         String alias = "";
@@ -176,10 +177,10 @@ public class BarobillCardTests {
      */
     @Test
     public void getCardManagementURL() {
-        String certKey = "";
-        String corpNum = "";
-        String id = "";
-        String pwd = "";
+        String certKey = "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03";
+        String corpNum = "2018204468";
+        String id = "capstone11";
+        String pwd = "zoqtmxhselwkdls11!";
 
         String result = barobillApiService.card.getCardManagementURL(certKey, corpNum, id, pwd);
 
@@ -233,7 +234,7 @@ public class BarobillCardTests {
         String certKey = "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03";
         String corpNum = "2018204468";
         String id = "capstone11";
-        String cardNum = "5107376798062092";
+        String cardNum = "377988083469081";
         String startDate = "20240405";
         String endDate = "20240408";
         int countPerPage = 10;
