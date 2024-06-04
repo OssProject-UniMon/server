@@ -13,4 +13,5 @@ public class LoginResponseDTO {
     private final String nickname;
     private final int accountStatus;
     private final int cardStatus;
+    private final String bankAccountNum;
 }

@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'com.sun.xml.ws:jaxws-rt:2.3.1'
+	implementation 'org.json:json:20240303'
 	implementation 'org.glassfish.jaxb:txw2:4.0.0'
 	implementation 'org.glassfish.ha:ha-api:3.1.13'
 	implementation 'org.glassfish.metro:webservices-rt:2.4.4'

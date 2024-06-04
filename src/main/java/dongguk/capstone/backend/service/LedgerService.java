@@ -35,11 +35,19 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
+import java.net.http.HttpRequest;
 
 @Service
 @Transactional
@@ -55,6 +63,8 @@ public class LedgerService {
     private final LogRepository logRepository;
     private final BarobillApiService barobillApiService;
 
+    private static final String FLASK_SERVER_URL = "http://43.202.82.18:5000/classify"; // 이걸 나중에 ec2 URL로 바꾸면 될 것 같은데..?
+
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
         barobillApiService = new BarobillApiService(BarobillApiProfile.TESTBED);
@@ -62,6 +72,40 @@ public class LedgerService {
         this.userRepository = userRepository;
         this.cardRepository = cardRepository;
         this.logRepository = logRepository;
+    }
+
+    public static String classifyTransaction(String useStoreName, String category) {
+        HttpClient client = HttpClient.newHttpClient();
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            String transactionDetails = "가게명 : " + useStoreName + " 업종 : " + category;
+            log.info("transactionDetails : {}",transactionDetails);
+
+            // Create the JSON payload
+            String json = mapper.writeValueAsString(Map.of("transaction_details", transactionDetails));
+
+            // Build the request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(FLASK_SERVER_URL))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            // Send the request and get the response
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode responseJson = mapper.readTree(response.body());
+                return responseJson.path("result").asText();
+            } else {
+                log.error("Failed to classify transaction: {}", response.body());
+                throw new RuntimeException("Failed to classify transaction: " + response.body());
+            }
+        } catch (Exception e) {
+            log.error("Exception occurred while classifying transaction: {}", e.getMessage());
+            throw new RuntimeException("Exception occurred while classifying transaction", e);
+        }
     }
 
     public JsonNode callChatGpt(String userMsg) throws JsonProcessingException{
@@ -237,7 +281,7 @@ public class LedgerService {
                 // 바로빌 API를 사용하여 계좌 조회
                 PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
                         "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 100, 1, 2);
+                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 10, 1, 2);
 
                 log.info("accountLog : {}",accountLog);
 
@@ -245,7 +289,7 @@ public class LedgerService {
                 // 바로빌 API를 사용하여 카드 조회
                 PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
                         "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
-                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 100, 1, 2);
+                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 10, 1, 2);
 
                 log.info("cardLog : {}",cardLog);
 
@@ -344,7 +388,28 @@ public class LedgerService {
         Element thElement = doc.select("th:contains(종목)").first();
         // 선택한 요소의 형제인 <td> 태그를 선택
         if(thElement==null){
-            logsListDTO.setCategory("기타");
+//            logsListDTO.setCategory("기타");
+            String flaskCategory = classifyTransaction(cardLogEx.getUseStoreName(), " ");
+            log.info("flaskCategory : {}", flaskCategory);
+            String category = switch (flaskCategory) {
+                case "1" -> "오락";
+                case "2" -> "문화";
+                case "3" -> "카페";
+                case "4" -> "스포츠";
+                case "5" -> "음식점";
+                case "6" -> "숙박비";
+                case "7" -> "잡화소매";
+                case "8" -> "쇼핑";
+                case "9" -> "개인이체";
+                case "10" -> "교통비";
+                case "11" -> "의료비";
+                case "12" -> "보험비";
+                case "13" -> "구독/정기결제";
+                case "14" -> "교육비";
+                case "15" -> "모바일페이";
+                default -> "기타";
+            };
+            logsListDTO.setCategory(category);
         }else {
             Element tdElement = thElement.nextElementSibling();
             log.info("tdElement : {}", tdElement);
@@ -354,14 +419,32 @@ public class LedgerService {
                 if (category.equals("-")) {
                     logsListDTO.setCategory("기타");
                 } else {
-                    // GPT 호출
+                    // Flask 서버 호출
                     try {
-                        JsonNode gptResponse = callChatGpt(category);
-                        String gptCategory = gptResponse.path("choices").get(0).path("message").path("content").asText();
-                        log.info("gptCategory : {}", gptCategory);
-                        logsListDTO.setCategory(gptCategory);
-                    } catch (JsonProcessingException e) {
-                        log.error("JsonProcessingException occurred: {}", e.getMessage());
+                        String flaskCategory = classifyTransaction(cardLogEx.getUseStoreName(), category);
+                        log.info("flaskCategory : {}", flaskCategory);
+                        // 여기에 switch 문으로 숫자 처리를 해야될 듯!
+                        category = switch (flaskCategory) {
+                            case "1" -> "오락";
+                            case "2" -> "문화";
+                            case "3" -> "카페";
+                            case "4" -> "스포츠";
+                            case "5" -> "음식점";
+                            case "6" -> "숙박비";
+                            case "7" -> "잡화소매";
+                            case "8" -> "쇼핑";
+                            case "9" -> "개인이체";
+                            case "10" -> "교통비";
+                            case "11" -> "의료비";
+                            case "12" -> "보험비";
+                            case "13" -> "구독/정기결제";
+                            case "14" -> "교육비";
+                            case "15" -> "모바일페이";
+                            default -> "기타";
+                        };
+                        logsListDTO.setCategory(category);
+                    } catch (Exception e) {
+                        log.error("Exception occurred: {}", e.getMessage());
                     }
                 }
             }

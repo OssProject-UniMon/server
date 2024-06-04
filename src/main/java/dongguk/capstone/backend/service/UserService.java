@@ -61,28 +61,26 @@ public class UserService {
         Optional<User> user = userRepository.findByEmail(loginRequestDTO.getEmail());
 
         if (user.isPresent()) {
-            if (loginRequestDTO.getPassword().equals(user.get().getPassword())) {
+            if (loginRequestDTO.getPassword().equals(user.get().getPassword())) { // 입력한 비밀번호가 이메일에 대응되는 비밀번호와 맞을 경우
                 Long userId = user.get().getUser_id();
 
                 // Account와 Card 확인
                 Optional<Account> account = accountRepository.findByUserId(userId);
                 Optional<Card> card = cardRepository.findByUserId(userId);
 
-                // Account와 Card가 있으면 상태 업데이트
-                boolean accountStatusUpdated = account.isPresent();
-                boolean cardStatusUpdated = card.isPresent();
-
-                if (accountStatusUpdated || cardStatusUpdated) {
-                    user.get().setAccountStatus(accountStatusUpdated ? 1 : 0);
-                    user.get().setCardStatus(cardStatusUpdated ? 1 : 0);
-                    userRepository.save(user.get()); // 상태 업데이트 후 저장
+                user.get().setAccountStatus(account.isPresent()? 1 : 0);
+                user.get().setCardStatus(card.isPresent()? 1 : 0);
+                userRepository.save(user.get()); // 상태 업데이트 후 저장
+                if(account.isPresent() && card.isPresent()){ // 계좌와 카드 등록을 이미 했을 경우
+                    return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus(), account.get().getAccountEmbedded().getBankAccountNum());
+                } else { // 계좌와 카드 등록이 안되어 있을 경우
+                    return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus(), null);
                 }
-                return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus());
-            } else {
-                return new LoginResponseDTO(0, null, null, 0, 0);
+            } else { // 비밀번호가 틀렸을 경우
+                return new LoginResponseDTO(0, null, null, 0, 0, null);
             }
-        } else {
-            return new LoginResponseDTO(0, null, null, 0, 0);
+        } else { // 이메일이 틀렸을 경우
+            return new LoginResponseDTO(0, null, null, 0, 0, null);
         }
     }
 }
