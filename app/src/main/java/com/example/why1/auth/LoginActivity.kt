@@ -55,9 +55,13 @@ class LoginActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     val result = response.body()?.serverCode
                     val userid = response.body()?.userId
+                    val nickname = response.body()?.nickname
                     val logresult = response.body()
                     if (userid != null) {
                         AppData.S_userId = userid // 유저 아이디 공용변수에 업데이트
+                        if (nickname != null) {
+                            AppData.user_nick = nickname
+                        }
                     }
                     Log.d("LoginResult", "Response: $logresult")
                     System.out.println(result)

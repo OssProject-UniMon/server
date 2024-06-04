@@ -6,4 +6,6 @@ object AppData {
     var Access_code: Int = 0
 
     var bank_num: String = "xxxx-xx-xxxxxxx"
+
+    var user_nick: String = ""
 }
