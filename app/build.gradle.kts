@@ -52,6 +52,7 @@ dependencies {
     // Scalars 변환기 라이브러리
     implementation ("com.squareup.retrofit2:converter-scalars:2.6.4")
     implementation ("androidx.recyclerview:recyclerview:1.3.2") // 리사이클러뷰 추가
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0") // 막대그래프 추가
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

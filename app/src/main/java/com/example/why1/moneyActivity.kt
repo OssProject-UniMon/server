@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
@@ -74,6 +75,7 @@ class moneyActivity : AppCompatActivity() {
         val myname = findViewById<TextView>(R.id.text2)
         val myact = findViewById<TextView>(R.id.text3)
         val new_btn = findViewById<Button>(R.id.renew)
+        val setting_btn = findViewById<ImageButton>(R.id.btnsetting)
 
         //스피너 처리
         var sp1_Result = ""
@@ -151,7 +153,10 @@ class moneyActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
+        setting_btn.setOnClickListener {
+            val intent = Intent(this@moneyActivity, ChartActivity::class.java)
+            startActivity(intent)
+        }
 
         //통신 성공하면 연결 버튼 사라지게 하는거
         if (access_code == 1) {
@@ -161,6 +166,7 @@ class moneyActivity : AppCompatActivity() {
             myname.visibility = View.GONE
             setting.visibility = View.GONE
             new_btn.visibility = View.GONE
+            setting_btn.visibility = View.GONE
         } else if (access_code == 0) {
             // code가 1이면 버튼을 숨기고 텍스트뷰를 보여줌
             act_btn.visibility = View.GONE
@@ -169,6 +175,7 @@ class moneyActivity : AppCompatActivity() {
             myname.visibility = View.VISIBLE
             setting.visibility = View.VISIBLE
             new_btn.visibility = View.VISIBLE
+            setting_btn.visibility = View.VISIBLE
             //myact.text = AppData.bank_num
         }
 
