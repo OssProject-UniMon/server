@@ -142,9 +142,8 @@ public class LedgerService {
 
         Map<String, String> assistantMesssage = new HashMap<>();
         assistantMesssage.put("role","system");
-//        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
-//                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
-        assistantMesssage.put("content","");
+        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
+                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
         messages.add(assistantMesssage);
 
         bodyMap.put("messages",messages);
