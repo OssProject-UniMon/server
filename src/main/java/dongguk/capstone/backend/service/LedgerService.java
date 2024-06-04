@@ -63,7 +63,7 @@ public class LedgerService {
     private final LogRepository logRepository;
     private final BarobillApiService barobillApiService;
 
-    private static final String FLASK_SERVER_URL = "http://43.202.82.18:5000/classify"; // 이걸 나중에 ec2 URL로 바꾸면 될 것 같은데..?
+    private static final String FLASK_SERVER_URL = "http://127.0.0.1:5000/classify";
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
