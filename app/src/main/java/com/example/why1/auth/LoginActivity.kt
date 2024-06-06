@@ -56,11 +56,18 @@ class LoginActivity : AppCompatActivity() {
                     val result = response.body()?.serverCode
                     val userid = response.body()?.userId
                     val nickname = response.body()?.nickname
+                    val a_status = response.body()?.accountStatus
+                    val c_status = response.body()?.cardStatus
                     val logresult = response.body()
                     if (userid != null) {
                         AppData.S_userId = userid // 유저 아이디 공용변수에 업데이트
                         if (nickname != null) {
                             AppData.user_nick = nickname
+                        }
+                        if (a_status != null && c_status != null){
+                            if (a_status == 1  && c_status == 1){
+                                AppData.Access_code = 1
+                            }
                         }
                     }
                     Log.d("LoginResult", "Response: $logresult")

@@ -109,7 +109,7 @@ class moneyActivity : AppCompatActivity() {
         val ActService = retrofit.create(ManageService::class.java)
 
 
-            val dynamicUrl2 = "/account/test?userId=$userId"
+            val dynamicUrl2 = "/account/logs?userId=$userId"
             val call = ActService.act_list(dynamicUrl2)
             call.enqueue(object : Callback<act_listResponse> {
                 override fun onResponse(call: Call<act_listResponse>, response: Response<act_listResponse>) {
@@ -159,7 +159,7 @@ class moneyActivity : AppCompatActivity() {
         }
 
         //통신 성공하면 연결 버튼 사라지게 하는거
-        if (access_code == 1) {
+        if (access_code == 0) {
             act_btn.visibility = View.VISIBLE
             mymoney.visibility = View.GONE
             myact.visibility = View.GONE
@@ -167,7 +167,7 @@ class moneyActivity : AppCompatActivity() {
             setting.visibility = View.GONE
             new_btn.visibility = View.GONE
             setting_btn.visibility = View.GONE
-        } else if (access_code == 0) {
+        } else if (access_code == 1) {
             // code가 1이면 버튼을 숨기고 텍스트뷰를 보여줌
             act_btn.visibility = View.GONE
             mymoney.visibility = View.VISIBLE

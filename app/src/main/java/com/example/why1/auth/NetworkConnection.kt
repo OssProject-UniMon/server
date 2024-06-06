@@ -5,6 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
@@ -38,6 +39,10 @@ class NetworkConnection {
             return OkHttpClient.Builder()
                 .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
                 .hostnameVerifier { _, _ -> true }
+                // 타임아웃 설정 (1분)
+                .connectTimeout(1, TimeUnit.MINUTES) // 연결 타임아웃
+                .readTimeout(1, TimeUnit.MINUTES)    // 읽기 타임아웃
+                .writeTimeout(1, TimeUnit.MINUTES)   // 쓰기 타임아웃
                 .build()
         }
 

@@ -62,7 +62,7 @@ class CardRegisterActivity : AppCompatActivity() {
 
             //카드 연동하기
             val dynamicUrl = "/account/card-regist?userId=$userid"
-            val call = ActService.card_register(dynamicUrl, card_RegisterRequest("SHINHAN","P","4890230019175114", "woalsdl7399","driermine7399!"))
+            val call = ActService.card_register(dynamicUrl, card_RegisterRequest("SHINHAN","P","5107376798062092", "woalsdl7399","driermine7399!"))
             call.enqueue(object : Callback<JoinResponse> {
                 override fun onResponse(call: Call<JoinResponse>, response: Response<JoinResponse>) {
                     val serverResponse = response.body()
