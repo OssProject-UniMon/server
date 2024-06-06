@@ -64,6 +64,7 @@ public class LedgerService {
     private final BarobillApiService barobillApiService;
 
     private static final String FLASK_SERVER_URL = "http://172.31.47.145:5000/classify";
+//    private static final String FLASK_SERVER_URL = "http://127.0.0.1:5000/classify";
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
@@ -108,47 +109,47 @@ public class LedgerService {
         }
     }
 
-    public JsonNode callChatGpt(String userMsg) throws JsonProcessingException{
-        final String url = "https://api.openai.com/v1/chat/completions";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(apikey);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        Map<String, Object> bodyMap = getStringObjectMap(userMsg);
-
-        String body = objectMapper.writeValueAsString(bodyMap);
-
-        HttpEntity<String> request = new HttpEntity<>(body,headers);
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-
-        return objectMapper.readTree(response.getBody());
-    }
-
-    private static Map<String, Object> getStringObjectMap(String userMsg) {
-        Map<String,Object> bodyMap = new HashMap<>();
-        bodyMap.put("model","gpt-4");
-
-        List<Map<String, String>> messages = new ArrayList<>();
-        Map<String, String> userMessage = new HashMap<>();
-        userMessage.put("role","user");
-        userMessage.put("content", userMsg);
-        messages.add(userMessage);
-
-        Map<String, String> assistantMesssage = new HashMap<>();
-        assistantMesssage.put("role","system");
-        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
-                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
-        messages.add(assistantMesssage);
-
-        bodyMap.put("messages",messages);
-        return bodyMap;
-    }
+//    public JsonNode callChatGpt(String userMsg) throws JsonProcessingException{
+//        final String url = "https://api.openai.com/v1/chat/completions";
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.setBearerAuth(apikey);
+//
+//        ObjectMapper objectMapper = new ObjectMapper();
+//
+//        Map<String, Object> bodyMap = getStringObjectMap(userMsg);
+//
+//        String body = objectMapper.writeValueAsString(bodyMap);
+//
+//        HttpEntity<String> request = new HttpEntity<>(body,headers);
+//
+//        RestTemplate restTemplate = new RestTemplate();
+//        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+//
+//        return objectMapper.readTree(response.getBody());
+//    }
+//
+//    private static Map<String, Object> getStringObjectMap(String userMsg) {
+//        Map<String,Object> bodyMap = new HashMap<>();
+//        bodyMap.put("model","gpt-4");
+//
+//        List<Map<String, String>> messages = new ArrayList<>();
+//        Map<String, String> userMessage = new HashMap<>();
+//        userMessage.put("role","user");
+//        userMessage.put("content", userMsg);
+//        messages.add(userMessage);
+//
+//        Map<String, String> assistantMesssage = new HashMap<>();
+//        assistantMesssage.put("role","system");
+//        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
+//                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
+//        messages.add(assistantMesssage);
+//
+//        bodyMap.put("messages",messages);
+//        return bodyMap;
+//    }
 
 
     /**
@@ -257,15 +258,18 @@ public class LedgerService {
             log.info("endDateString : {}", today);
 
             for(Account acc : accounts){
-                if(user.getUser_id().equals(acc.getUser().getUser_id())){
+                if(user.getUserId().equals(acc.getUser().getUserId())){
                     account = acc;
                 }
             }
             for(Card c : cards){
-                if(user.getUser_id().equals(c.getUser().getUser_id())){
+                if(user.getUserId().equals(c.getUser().getUserId())){
                     card = c;
                 }
             }
+
+            // 기존 로그 삭제
+            logRepository.deleteByLogEmbeddedUserId(user.getUserId());
 
             try {
 
@@ -316,7 +320,7 @@ public class LedgerService {
                                 // 계좌 결제 내역과 카드 결제 정보를 순서대로 넣으면 곧 일시 순서대로 넣는다
                                 LogsListDTO logsListDTO = getLogsListDTO(bankAccountLogEx, cardLogEx); // 여기서 IOException이 발생할 수 있기 때문에 try-catch문 사용
                                 // 2. LogsListDTO를 Log 엔티티로 매핑하여 저장
-                                Log logEntity = mapToLogEntity(user.getUser_id(),cardLogEx.getCardNum(),logsListDTO);
+                                Log logEntity = mapToLogEntity(user.getUserId(),cardLogEx.getCardNum(),logsListDTO);
                                 logRepository.save(logEntity); // LogRepository를 통해 저장
                                 processedCardLogs.add(cardLogEx); // 처리된 카드 로그를 리스트에 추가
                                 processedBankAccountLogs.add(bankAccountLogEx); // 처리된 계좌 로그를 리스트에 추가

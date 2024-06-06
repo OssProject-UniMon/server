@@ -62,7 +62,7 @@ public class UserService {
 
         if (user.isPresent()) {
             if (loginRequestDTO.getPassword().equals(user.get().getPassword())) { // 입력한 비밀번호가 이메일에 대응되는 비밀번호와 맞을 경우
-                Long userId = user.get().getUser_id();
+                Long userId = user.get().getUserId();
 
                 // Account와 Card 확인
                 Optional<Account> account = accountRepository.findByUserId(userId);

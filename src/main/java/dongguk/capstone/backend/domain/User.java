@@ -14,7 +14,8 @@ import java.util.List;
 public class User {
     @Id // @Id 애노테이션이 붙은 바로 밑 필드가 pk가 되는 것
     @GeneratedValue(strategy = GenerationType.IDENTITY) // JPA에서 엔티티의 기본 키를 자동으로 생성하는 전략 - 엔티티의 기본 키를 자동으로 생성하고 싶을 때 사용하는 설정
-    private Long user_id;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(length = 100) // @Column은 DB의 컬럼(속성)과 필드의 변수가 매핑되게 해준다
     private String nickname;
@@ -54,16 +55,12 @@ public class User {
     @Column(name = "card_status")
     private int cardStatus;
 
-//    @Column(name = "schedule_hour")
-//    private int scheduleHour;
-//
-//    @Column(name = "schedule_minute")
-//    private int scheduleMinute;
-
-    // 이걸 어떻게 해야되지
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Account> accounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Card> cards = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Schedule schedule = new Schedule();
 }
