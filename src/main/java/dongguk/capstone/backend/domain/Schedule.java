@@ -28,7 +28,4 @@ public class Schedule {
 
     @Column(length = 100)
     private String email;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    private User user;
 }
