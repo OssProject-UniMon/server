@@ -56,6 +56,7 @@ public class HomeService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             schedule.setUser(user);
+            schedule.setUserId(userId);
             schedule.setTitle(schedulePlusRequestDTO.getTitle());
             schedule.setStartTime(schedulePlusRequestDTO.getStartTime());
             schedule.setEndTime(schedulePlusRequestDTO.getEndTime());

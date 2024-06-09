@@ -14,6 +14,9 @@ public class Schedule {
     @Column(name="schedule_id")
     private Long scheduleId;
 
+    @Column(name="user_id", insertable = false, updatable = false)
+    private Long userId;
+
     @Column(length = 100)
     private String title;
 

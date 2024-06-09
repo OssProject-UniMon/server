@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SchedulePlusRequestDTO {
-    private String email;
     private String title;
     private String startTime;
     private String endTime;
