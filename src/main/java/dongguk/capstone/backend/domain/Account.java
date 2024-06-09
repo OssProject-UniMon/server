@@ -10,7 +10,6 @@ import lombok.Setter;
 @Setter
 @Table(name = "account")
 public class Account {
-
     @EmbeddedId
     private AccountEmbedded accountEmbedded;
 

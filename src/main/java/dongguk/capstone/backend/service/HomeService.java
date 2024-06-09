@@ -1,6 +1,7 @@
 package dongguk.capstone.backend.service;
 
 import dongguk.capstone.backend.domain.Schedule;
+import dongguk.capstone.backend.domain.User;
 import dongguk.capstone.backend.homedto.SchedulePlusRequestDTO;
 import dongguk.capstone.backend.repository.ScheduleRepository;
 import dongguk.capstone.backend.homedto.ScheduleListDTO;
@@ -47,9 +48,11 @@ public class HomeService {
 
     public int plus(Long userId, SchedulePlusRequestDTO schedulePlusRequestDTO) {
         Schedule schedule = new Schedule();
-        if (userRepository.findById(userId).isPresent()) {
-            schedule.setUser(userRepository.findById(userId).get());
-            schedule.setUserId(userId);
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            schedule.setUser(user);
+            schedule.setUserId(user.getUserId());
             schedule.setTitle(schedulePlusRequestDTO.getTitle());
             schedule.setStartTime(schedulePlusRequestDTO.getStartTime());
             schedule.setEndTime(schedulePlusRequestDTO.getEndTime());

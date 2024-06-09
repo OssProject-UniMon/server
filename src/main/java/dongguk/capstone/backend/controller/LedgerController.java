@@ -87,7 +87,7 @@ public class LedgerController {
         // logs 테스트 메소드 안에서만
     }
 
-    @GetMapping("/test")
+    @PostMapping("/test")
     public LogsResponseDTO test(@RequestParam("userId") Long userId){
         ledgerService.fetchAndSaveLogs(); // 데베에 거래 내역 들어감
         return ledgerService.log(userId);

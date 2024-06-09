@@ -54,8 +54,8 @@ import java.net.http.HttpRequest;
 @Slf4j
 public class LedgerService {
 
-    @Value("${openai.api.key}")
-    private String apikey; // 연동할 chat gpt assistant api의 api key
+//    @Value("${openai.api.key}")
+//    private String apikey; // 연동할 chat gpt assistant api의 api key
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
@@ -63,8 +63,8 @@ public class LedgerService {
     private final LogRepository logRepository;
     private final BarobillApiService barobillApiService;
 
-    private static final String FLASK_SERVER_URL = "http://172.31.47.145:5000/classify";
-//    private static final String FLASK_SERVER_URL = "http://127.0.0.1:5000/classify";
+    private static final String LEDGER_FLASK_SERVER_URL = "http://172.31.47.145:5000/classify";
+//    private static final String LEDGER_FLASK_SERVER_URL = "http://127.0.0.1:5000/classify";
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
@@ -88,7 +88,7 @@ public class LedgerService {
 
             // Build the request
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(FLASK_SERVER_URL))
+                    .uri(new URI(LEDGER_FLASK_SERVER_URL))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
