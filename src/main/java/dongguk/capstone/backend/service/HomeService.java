@@ -24,21 +24,14 @@ public class HomeService {
     private final ScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
 
-    /**
-     * 메인 화면
-     * @param userId
-     * @return ScheduleListDTO
-     */
     public ScheduleResponseDTO home(Long userId) {
-        // 여기서 로그인한 이메일과 scheduleRepository에서의 이메일이 같은 애들을 들고오기
         ScheduleResponseDTO scheduleResponseDTO = new ScheduleResponseDTO();
         List<ScheduleListDTO> list = new ArrayList<>();
-        Optional<User> user = userRepository.findById(userId); // User 엔티티 조회
-        if(user.isPresent()){
-            List<Schedule> schedules = scheduleRepository.findSchedulesByUserId(userId); // User ID를 기준으로 스케줄 조회
-            for(Schedule schedule : schedules) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            List<Schedule> schedules = scheduleRepository.findSchedulesByUserId(userId);
+            for (Schedule schedule : schedules) {
                 ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
-
                 scheduleListDTO.setTitle(schedule.getTitle());
                 scheduleListDTO.setStartTime(schedule.getStartTime());
                 scheduleListDTO.setEndTime(schedule.getEndTime());
@@ -50,14 +43,12 @@ public class HomeService {
         return scheduleResponseDTO;
     }
 
-
     public int plus(Long userId, SchedulePlusRequestDTO schedulePlusRequestDTO) {
         Schedule schedule = new Schedule();
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             schedule.setUser(user);
-            schedule.setUserId(userId);
             schedule.setTitle(schedulePlusRequestDTO.getTitle());
             schedule.setStartTime(schedulePlusRequestDTO.getStartTime());
             schedule.setEndTime(schedulePlusRequestDTO.getEndTime());
@@ -68,3 +59,4 @@ public class HomeService {
         return 0;
     }
 }
+

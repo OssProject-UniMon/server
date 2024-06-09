@@ -14,8 +14,9 @@ public class Schedule {
     @Column(name="schedule_id")
     private Long scheduleId;
 
-    @Column(name="user_id", insertable = false, updatable = false)
-    private Long userId;
+    // Removed this field as it is not needed for FK mapping when using @ManyToOne
+    // @Column(name="user_id", insertable = false, updatable = false)
+    // private Long userId;
 
     @Column(length = 100)
     private String title;
@@ -29,7 +30,7 @@ public class Schedule {
     @Column(length = 100)
     private String day;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 }
