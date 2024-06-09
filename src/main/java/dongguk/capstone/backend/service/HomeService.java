@@ -7,6 +7,7 @@ import dongguk.capstone.backend.repository.ScheduleRepository;
 import dongguk.capstone.backend.homedto.ScheduleListDTO;
 import dongguk.capstone.backend.homedto.ScheduleResponseDTO;
 import dongguk.capstone.backend.repository.UserRepository;
+import dongguk.capstone.backend.serializable.LogEmbedded;
 import dongguk.capstone.backend.serializable.ScheduleEmbedded;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,14 @@ public class HomeService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             ScheduleEmbedded scheduleEmbedded = new ScheduleEmbedded();
+            // userId에 따라 logId 값을 설정
+            Long scheduleId = scheduleRepository.findMaxScheduleIdByUserId(userId); // 해당 userId의 최대 logId를 가져옴
+            if (scheduleId == null) {
+                scheduleId = 1L; // 최대 logId가 없으면 1로 초기화
+            } else {
+                scheduleId++; // 최대 logId가 있으면 1 증가
+            }
+            scheduleEmbedded.setScheduleId(scheduleId);
             scheduleEmbedded.setUserId(userId);
             schedule.setScheduleEmbedded(scheduleEmbedded);
             schedule.setUser(user);

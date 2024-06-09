@@ -6,5 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
+
+    Long findMaxScheduleIdByUserId(Long userId);
+
     List<Schedule> findByScheduleEmbeddedUserId(Long userId);
 }

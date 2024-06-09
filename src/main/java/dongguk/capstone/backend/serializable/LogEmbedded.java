@@ -12,8 +12,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LogEmbedded
-{
+public class LogEmbedded implements Serializable {
     @Column(name="log_id")
     private Long logId;
 
