@@ -11,7 +11,11 @@ import lombok.Setter;
 @Table(name = "schedule")
 public class Schedule {
 
+<<<<<<< Updated upstream
     @EmbeddedId // 복합키 설정
+=======
+    @EmbeddedId
+>>>>>>> Stashed changes
     private ScheduleEmbedded scheduleEmbedded;
 
     @Column(length = 100)
@@ -26,7 +30,13 @@ public class Schedule {
     @Column(length = 100)
     private String day;
 
+<<<<<<< Updated upstream
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+=======
+    @MapsId("userId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+>>>>>>> Stashed changes
     private User user;
 }
