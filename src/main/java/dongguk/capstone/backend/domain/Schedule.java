@@ -26,6 +26,7 @@ public class Schedule {
     @Column(length = 100)
     private String day;
 
-    @Column(length = 100)
-    private String email;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }

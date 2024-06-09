@@ -21,8 +21,8 @@ public class HomeController {
     }
 
     @PostMapping("/plus")
-    public SchedulePlusResponseDTO plus(@RequestBody SchedulePlusRequestDTO schedulePlusRequestDTO){
-        int result = homeService.plus(schedulePlusRequestDTO);
+    public SchedulePlusResponseDTO plus(@RequestParam("userId") Long userId, @RequestBody SchedulePlusRequestDTO schedulePlusRequestDTO){
+        int result = homeService.plus(userId, schedulePlusRequestDTO);
         return new SchedulePlusResponseDTO(result);
     }
 }

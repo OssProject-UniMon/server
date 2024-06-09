@@ -34,33 +34,35 @@ public class HomeService {
         ScheduleResponseDTO scheduleResponseDTO = new ScheduleResponseDTO();
         List<ScheduleListDTO> list = new ArrayList<>();
         Optional<User> user = userRepository.findById(userId); // User 엔티티 조회
-        List<Schedule> schedules = scheduleRepository.findAll();
         if(user.isPresent()){
+            List<Schedule> schedules = scheduleRepository.findSchedulesByUserId(userId); // User ID를 기준으로 스케줄 조회
             for(Schedule schedule : schedules) {
-                if(user.get().getEmail().equals(schedule.getEmail())){
-                    ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
-                    scheduleListDTO.setTitle(schedule.getTitle());
-                    scheduleListDTO.setStartTime(schedule.getStartTime());
-                    scheduleListDTO.setEndTime(schedule.getEndTime());
-                    scheduleListDTO.setDay(schedule.getDay());
-                    list.add(scheduleListDTO);
-                }
+                ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
+                scheduleListDTO.setTitle(schedule.getTitle());
+                scheduleListDTO.setStartTime(schedule.getStartTime());
+                scheduleListDTO.setEndTime(schedule.getEndTime());
+                scheduleListDTO.setDay(schedule.getDay());
+                list.add(scheduleListDTO);
             }
         }
         scheduleResponseDTO.setScheduleList(list);
         return scheduleResponseDTO;
     }
 
-    public int plus(SchedulePlusRequestDTO schedulePlusRequestDTO) {
+
+    public int plus(Long userId, SchedulePlusRequestDTO schedulePlusRequestDTO) {
         Schedule schedule = new Schedule();
-
-        schedule.setEmail(schedulePlusRequestDTO.getEmail());
-        schedule.setTitle(schedulePlusRequestDTO.getTitle());
-        schedule.setStartTime(schedulePlusRequestDTO.getStartTime());
-        schedule.setEndTime(schedulePlusRequestDTO.getEndTime());
-        schedule.setDay(schedulePlusRequestDTO.getDay());
-        scheduleRepository.save(schedule);
-
-        return 1;
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            schedule.setUser(user);
+            schedule.setTitle(schedulePlusRequestDTO.getTitle());
+            schedule.setStartTime(schedulePlusRequestDTO.getStartTime());
+            schedule.setEndTime(schedulePlusRequestDTO.getEndTime());
+            schedule.setDay(schedulePlusRequestDTO.getDay());
+            scheduleRepository.save(schedule);
+            return 1;
+        }
+        return 0;
     }
 }
