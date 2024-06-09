@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SchedulePlusRequestDTO {
+public class SchedulePlusListDTO {
     private String email;
     private String title;
     private String startTime;

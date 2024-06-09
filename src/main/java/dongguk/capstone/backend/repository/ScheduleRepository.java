@@ -8,9 +8,4 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
-
-    @Query("SELECT MAX(s.scheduleEmbedded.scheduleId) FROM Schedule s WHERE s.scheduleEmbedded.userId = :userId")
-    Long findMaxScheduleIdByUserId(@Param("userId") Long userId);
-
-    List<Schedule> findByScheduleEmbeddedUserId(Long userId);
 }
