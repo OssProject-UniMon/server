@@ -38,6 +38,7 @@ public class HomeService {
             List<Schedule> schedules = scheduleRepository.findSchedulesByUserId(userId); // User ID를 기준으로 스케줄 조회
             for(Schedule schedule : schedules) {
                 ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
+
                 scheduleListDTO.setTitle(schedule.getTitle());
                 scheduleListDTO.setStartTime(schedule.getStartTime());
                 scheduleListDTO.setEndTime(schedule.getEndTime());
