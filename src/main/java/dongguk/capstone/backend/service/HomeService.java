@@ -52,20 +52,20 @@ public class HomeService {
 
 
     public int plus(Long userId, SchedulePlusRequestDTO schedulePlusRequestDTO) {
-        Schedule schedule = new Schedule();
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             ScheduleEmbedded scheduleEmbedded = new ScheduleEmbedded();
-            // userId에 따라 logId 값을 설정
-            Long scheduleId = scheduleRepository.findMaxScheduleIdByUserId(userId); // 해당 userId의 최대 logId를 가져옴
+            // userId에 따라 scheduleId 값을 설정
+            Long scheduleId = scheduleRepository.findMaxScheduleIdByUserId(userId); // 해당 userId의 최대 scheduleId를 가져옴
             if (scheduleId == null) {
-                scheduleId = 1L; // 최대 logId가 없으면 1로 초기화
+                scheduleId = 1L; // 최대 scheduleId가 없으면 1로 초기화
             } else {
-                scheduleId++; // 최대 logId가 있으면 1 증가
+                scheduleId++; // 최대 scheduleId가 있으면 1 증가
             }
             scheduleEmbedded.setScheduleId(scheduleId);
             scheduleEmbedded.setUserId(userId);
+            Schedule schedule = new Schedule();
             schedule.setScheduleEmbedded(scheduleEmbedded);
             schedule.setUser(user);
             schedule.setTitle(schedulePlusRequestDTO.getTitle());
@@ -77,4 +77,5 @@ public class HomeService {
         }
         return 0;
     }
+
 }
