@@ -47,8 +47,7 @@ public class HomeService {
         Schedule schedule = new Schedule();
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            schedule.setUser(user);
+            schedule.setUserId(userId);
             schedule.setTitle(schedulePlusRequestDTO.getTitle());
             schedule.setStartTime(schedulePlusRequestDTO.getStartTime());
             schedule.setEndTime(schedulePlusRequestDTO.getEndTime());
