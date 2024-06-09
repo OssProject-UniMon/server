@@ -12,10 +12,9 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class LogEmbedded
-{
-    @Column(name="log_id")
-    private Long logId;
+public class ScheduleEmbedded implements Serializable {
+    @Column(name="schedule_id")
+    private Long scheduleId;
 
     @Column(name="user_id")
     private Long userId;
