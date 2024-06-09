@@ -41,6 +41,7 @@ public class HomeService {
             scheduleListDTO.setDay(schedule.get().getDay());
             list.add(scheduleListDTO);
         }
+        scheduleResponseDTO.setUserId(userId);
         scheduleResponseDTO.setScheduleList(list);
         return scheduleResponseDTO;
     }
