@@ -22,4 +22,10 @@ interface ManageService {
 
     @POST
     fun card_register(@Url url: String, @Body credential: card_RegisterRequest): Call<JoinResponse>
+
+    @POST
+    fun sch_add(@Url url: String, @Body credential: Sch_Request): Call<JoinResponse>
+
+    @GET
+    fun sch_list(@Url url: String): Call<Sch_listResponse>
 }

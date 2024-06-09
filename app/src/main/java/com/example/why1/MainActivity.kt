@@ -5,13 +5,24 @@ import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.GridLayout
+import android.widget.ListView
 import android.widget.TextView
 import androidx.databinding.DataBindingUtil
+import com.example.why1.appdata.AccountData
+import com.example.why1.appdata.Accountadapter
 import com.example.why1.appdata.AppData
 import com.example.why1.appdata.Schedule
+import com.example.why1.auth.NetworkConnection
 import com.example.why1.databinding.ActivityMainBinding
+import com.example.why1.retropit.ManageService
+import com.example.why1.retropit.Sch_listResponse
+import com.example.why1.retropit.act_listResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,6 +33,41 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val nickname = AppData.user_nick
+        val userId = AppData.S_userId
+
+        //secure무시, 리트로핏 통신까지
+        val okHttpClient = NetworkConnection.createOkHttpClient()
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://43.202.82.18:443")
+        val ActService = retrofit.create(ManageService::class.java)
+
+        val dynamicUrl2 = "/home?userId=$userId"
+        val call = ActService.sch_list(dynamicUrl2)
+        call.enqueue(object : Callback<Sch_listResponse> {
+            override fun onResponse(call: Call<Sch_listResponse>, response: Response<Sch_listResponse>) {
+                val logs = response.body()?.scheduleList
+                Log.d("scheduleResult: ", "Response: $logs")
+                logs?.let {
+                    val newSchedules = it.map { item ->
+                        Schedule(
+                            name = item.title,
+                            startHour = item.startTime.toInt(),
+                            endHour = item.endTime.toInt(),
+                            dayOfWeek = item.day.toInt()
+                        )
+                    }
+                    schedules.addAll(newSchedules)
+                    newSchedules.forEach { schedule ->
+                        updateScheduleGrid(schedule)
+                    }
+                }
+
+            }
+
+            override fun onFailure(call: Call<Sch_listResponse>, t: Throwable) {
+
+                Log.e("act_showlist", "Failed to send request to server. Error: ${t.message}")
+            }
+        })
 
         binding = DataBindingUtil.setContentView(this,R.layout.activity_main)
         binding.nicktext.text = nickname+"님 환영합니다!!"
