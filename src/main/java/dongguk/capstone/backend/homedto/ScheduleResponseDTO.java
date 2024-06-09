@@ -10,6 +10,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleResponseDTO {
-    private Long userId;
     private List<ScheduleListDTO> scheduleList;
 }

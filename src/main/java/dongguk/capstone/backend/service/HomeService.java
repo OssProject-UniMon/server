@@ -32,16 +32,18 @@ public class HomeService {
     public ScheduleResponseDTO home(Long userId) {
         ScheduleResponseDTO scheduleResponseDTO = new ScheduleResponseDTO();
         List<ScheduleListDTO> list = new ArrayList<>();
-        Optional<Schedule> schedule = scheduleRepository.findById(userId);
-        if(schedule.isPresent()){
-            ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
-            scheduleListDTO.setTitle(schedule.get().getTitle());
-            scheduleListDTO.setStartTime(schedule.get().getStartTime());
-            scheduleListDTO.setEndTime(schedule.get().getEndTime());
-            scheduleListDTO.setDay(schedule.get().getDay());
-            list.add(scheduleListDTO);
+        Optional<User> user = userRepository.findById(userId); // User 엔티티 조회
+        if(user.isPresent()){
+            List<Schedule> schedules = scheduleRepository.findByUserId(userId); // User ID를 기준으로 스케줄 조회
+            for(Schedule schedule : schedules) {
+                ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
+                scheduleListDTO.setTitle(schedule.getTitle());
+                scheduleListDTO.setStartTime(schedule.getStartTime());
+                scheduleListDTO.setEndTime(schedule.getEndTime());
+                scheduleListDTO.setDay(schedule.getDay());
+                list.add(scheduleListDTO);
+            }
         }
-        scheduleResponseDTO.setUserId(userId);
         scheduleResponseDTO.setScheduleList(list);
         return scheduleResponseDTO;
     }
