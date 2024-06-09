@@ -9,6 +9,6 @@ import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
-    @Query("SELECT s FROM Schedule s WHERE s.user.userId = :userId")
+    @Query("SELECT s FROM Schedule s WHERE s.userId = :userId")
     List<Schedule> findSchedulesByUserId(@Param("userId") Long userId);
 }
