@@ -68,7 +68,7 @@ public class LedgerService {
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
-        barobillApiService = new BarobillApiService(BarobillApiProfile.TESTBED);
+        barobillApiService = new BarobillApiService(BarobillApiProfile.RELEASE);
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.cardRepository = cardRepository;
