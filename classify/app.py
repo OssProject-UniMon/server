@@ -112,9 +112,9 @@ def scholarship_recommandation(scholarship_details, user_details,today):
     )
 
     # #######################쓰레드 생성#######################
-    #thread = client.beta.threads.create()
+    thread = client.beta.threads.create()
     
-    thread = client.beta.threads.retrieve("thread_nfRDm9bQxMD22jezibDIQoYD")
+    #thread = client.beta.threads.retrieve("thread_nfRDm9bQxMD22jezibDIQoYD")
 
 
     #######################메세지 생성#######################
@@ -137,7 +137,7 @@ def scholarship_recommandation(scholarship_details, user_details,today):
     ###############Run#################
     run = client.beta.threads.runs.create_and_poll(
         thread_id=thread.id, assistant_id=assistant.id,
-        instructions="""답변은 쓸데없는 설명 없이 해당 5개의 장학금들이 각각 몇 번째 장학금인지 숫자만 출력해. 예를 들어 1번, 10번, 11번, 30번, 39번 장학금이 추천 결과라면 "1 10 11 30 39" 를 출력해줘. 사용자 정보에 따라 가장 적합한 장학금 5개만 추천해 주는거야."""
+        instructions="""답변은 쓸데없는 설명 없이 해당 5개의 장학금들이 각각 몇 번째 장학금인지 숫자만 출력해. 예를 들어 1번, 10번, 11번, 30번, 39번 장학금이 추천 결과라면 "1 10 11 30 39" 를 출력해줘."""
         # tools = [{"type": "file_search"}]
     )
     
