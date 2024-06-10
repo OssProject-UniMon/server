@@ -94,6 +94,7 @@ public class ScholarshipService {
         return scholarship;
     }
 
+
     public ScholarshipRecommendResponseDTO recommend(Long userId) throws IOException, InterruptedException {
         ScholarshipRecommendResponseDTO scholarshipResponseDTO = new ScholarshipRecommendResponseDTO();
         Optional<User> user = userRepository.findById(userId);
@@ -110,6 +111,7 @@ public class ScholarshipService {
 
             List<ScholarshipDetailListDTO> list = getScholarshipDetailListDTOS(scholarship);
 
+            log.info("BeforeRecommendList: {}",list);
             ScholarshipDetailDTO scholarshipDetailDTO = new ScholarshipDetailDTO();
             scholarshipDetailDTO.setScholarshipDetailList(list);
 
@@ -128,8 +130,18 @@ public class ScholarshipService {
             if (response.statusCode() == 200) {
                 JsonNode responseJson = objectMapper.readTree(response.body());
                 log.info("responseJson: {}",responseJson);
-                List<ScholarshipDetailListDTO> scholarshipDetailListDTOs = parseResultFieldToDetailListDTO(responseJson);
-                scholarshipResponseDTO.setScholarshipList(scholarshipDetailListDTOs);
+                // responseJson.path("result").asText(); 이게 나중에 번호가 합쳐진 문자열로 올것임. "1 2 3 4 5" 이런 식으로!
+                // list 여기서 인덱스해서 이용해야 됨
+                String result = responseJson.path("result").asText();
+                log.info("result: {}",result);
+                // 여기서 result를 문자로 하나씩 나눈 뒤, 그 문자를 인덱스로 삼아서 기존 장학금 배열에서 인덱싱 하기!
+                String[] index = result.split(" ");
+                List<ScholarshipDetailListDTO> resultList = new ArrayList<>();
+                for (String i : index) {
+                    ScholarshipDetailListDTO scholarshipDetailListDTO = list.get(Integer.parseInt(i) - 1);
+                    resultList.add(scholarshipDetailListDTO);
+                }
+                scholarshipResponseDTO.setScholarshipList(resultList);
                 return scholarshipResponseDTO;
             } else {
                 log.error("Failed to classify transaction: {}", response.body());
@@ -153,30 +165,6 @@ public class ScholarshipService {
             list.add(new ScholarshipDetailListDTO(scholarship.getName(), scholarship.getTarget(), scholarship.getDue()));
         }
         return list;
-    }
-
-    private List<ScholarshipDetailListDTO> parseResultFieldToDetailListDTO(JsonNode responseJson) {
-        List<ScholarshipDetailListDTO> scholarshipDetailListDTOs = new ArrayList<>();
-        try {
-            String resultField = responseJson.path("result").asText();
-            JsonNode innerJsonNode = objectMapper.readTree(resultField);
-
-            if (innerJsonNode.has("scholarshipDetailList")) {
-                JsonNode scholarshipDetailList = innerJsonNode.get("scholarshipDetailList");
-
-                if (scholarshipDetailList.isArray()) {
-                    for (JsonNode node : scholarshipDetailList) {
-                        String name = node.get("name").asText();
-                        String target = node.get("target").asText();
-                        String due = node.get("due").asText();
-                        scholarshipDetailListDTOs.add(new ScholarshipDetailListDTO(name, target, due));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Error parsing result field to ScholarshipDetailListDTO: {}", e.getMessage());
-        }
-        return scholarshipDetailListDTOs;
     }
 
 }
