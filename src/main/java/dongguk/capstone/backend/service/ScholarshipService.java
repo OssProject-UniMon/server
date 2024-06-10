@@ -94,9 +94,8 @@ public class ScholarshipService {
         return scholarship;
     }
 
-
     public ScholarshipRecommendResponseDTO recommend(Long userId) throws IOException, InterruptedException {
-        ScholarshipRecommendResponseDTO scholarshipResponseDTO = new ScholarshipRecommendResponseDTO();
+        ScholarshipRecommendResponseDTO scholarshipRecommendResponseDTO = new ScholarshipRecommendResponseDTO();
         Optional<User> user = userRepository.findById(userId);
         List<Scholarship> scholarship = scholarshipRepository.findAll();
         LocalDate currentDate = LocalDate.now();
@@ -106,7 +105,7 @@ public class ScholarshipService {
             ScholarshipUserDetailDTO scholarshipUserDetailDTO = getScholarshipUserDetailDTO(user);
             if (scholarshipUserDetailDTO == null) {
                 log.error("Failed to retrieve user details.");
-                return scholarshipResponseDTO;
+                return scholarshipRecommendResponseDTO;
             }
 
             List<ScholarshipDetailListDTO> list = getScholarshipDetailListDTOS(scholarship);
@@ -136,19 +135,26 @@ public class ScholarshipService {
                 log.info("result: {}",result);
                 // 여기서 result를 문자로 하나씩 나눈 뒤, 그 문자를 인덱스로 삼아서 기존 장학금 배열에서 인덱싱 하기!
                 String[] index = result.split(" ");
-                List<ScholarshipDetailListDTO> resultList = new ArrayList<>();
+                List<ScholarshipResponseListDTO> resultList = new ArrayList<>();
+                List<Scholarship> scholarshipList = scholarshipRepository.findAll();
+                ScholarshipResponseListDTO scholarshipResponseListDTO = new ScholarshipResponseListDTO();
                 for (String i : index) {
-                    ScholarshipDetailListDTO scholarshipDetailListDTO = list.get(Integer.parseInt(i));
-                    resultList.add(scholarshipDetailListDTO);
+                    Scholarship scholarshipResponse = scholarshipList.get(Integer.parseInt(i));
+                    scholarshipResponseListDTO.setName(scholarshipResponse.getName());
+                    scholarshipResponseListDTO.setAmount(scholarshipResponse.getAmount());
+                    scholarshipResponseListDTO.setTarget(scholarshipResponse.getTarget());
+                    scholarshipResponseListDTO.setDue(scholarshipResponse.getDue());
+                    scholarshipResponseListDTO.setUrl(scholarshipResponse.getUrl());
+                    resultList.add(scholarshipResponseListDTO);
                 }
-                scholarshipResponseDTO.setScholarshipList(resultList);
-                return scholarshipResponseDTO;
+                scholarshipRecommendResponseDTO.setScholarshipList(resultList);
+                return scholarshipRecommendResponseDTO;
             } else {
                 log.error("Failed to classify transaction: {}", response.body());
                 throw new RuntimeException("Failed to classify transaction: " + response.body());
             }
         }
-        return scholarshipResponseDTO;
+        return scholarshipRecommendResponseDTO;
     }
 
     private static ScholarshipUserDetailDTO getScholarshipUserDetailDTO(Optional<User> user) {
