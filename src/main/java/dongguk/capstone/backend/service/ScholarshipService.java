@@ -135,18 +135,8 @@ public class ScholarshipService {
                 log.info("result: {}",result);
                 // 여기서 result를 문자로 하나씩 나눈 뒤, 그 문자를 인덱스로 삼아서 기존 장학금 배열에서 인덱싱 하기!
                 String[] index = result.split(" ");
-                List<ScholarshipResponseListDTO> resultList = new ArrayList<>();
                 List<Scholarship> scholarshipList = scholarshipRepository.findAll();
-                ScholarshipResponseListDTO scholarshipResponseListDTO = new ScholarshipResponseListDTO();
-                for (String i : index) {
-                    Scholarship scholarshipResponse = scholarshipList.get(Integer.parseInt(i));
-                    scholarshipResponseListDTO.setName(scholarshipResponse.getName());
-                    scholarshipResponseListDTO.setAmount(scholarshipResponse.getAmount());
-                    scholarshipResponseListDTO.setTarget(scholarshipResponse.getTarget());
-                    scholarshipResponseListDTO.setDue(scholarshipResponse.getDue());
-                    scholarshipResponseListDTO.setUrl(scholarshipResponse.getUrl());
-                    resultList.add(scholarshipResponseListDTO);
-                }
+                List<ScholarshipResponseListDTO> resultList = getScholarshipResponseListDTOS(index, scholarshipList);
                 scholarshipRecommendResponseDTO.setScholarshipList(resultList);
                 return scholarshipRecommendResponseDTO;
             } else {
@@ -155,6 +145,21 @@ public class ScholarshipService {
             }
         }
         return scholarshipRecommendResponseDTO;
+    }
+
+    private static List<ScholarshipResponseListDTO> getScholarshipResponseListDTOS(String[] index, List<Scholarship> scholarshipList) {
+        ScholarshipResponseListDTO scholarshipResponseListDTO = new ScholarshipResponseListDTO();
+        List<ScholarshipResponseListDTO> resultList = new ArrayList<>();
+        for (String i : index) {
+            Scholarship scholarshipResponse = scholarshipList.get(Integer.parseInt(i));
+            scholarshipResponseListDTO.setName(scholarshipResponse.getName());
+            scholarshipResponseListDTO.setAmount(scholarshipResponse.getAmount());
+            scholarshipResponseListDTO.setTarget(scholarshipResponse.getTarget());
+            scholarshipResponseListDTO.setDue(scholarshipResponse.getDue());
+            scholarshipResponseListDTO.setUrl(scholarshipResponse.getUrl());
+            resultList.add(scholarshipResponseListDTO);
+        }
+        return resultList;
     }
 
     private static ScholarshipUserDetailDTO getScholarshipUserDetailDTO(Optional<User> user) {
