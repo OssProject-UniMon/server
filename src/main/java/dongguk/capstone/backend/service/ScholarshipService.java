@@ -94,8 +94,8 @@ public class ScholarshipService {
         return scholarship;
     }
 
-    public ScholarshipResponseDTO recommend(Long userId) throws IOException, InterruptedException {
-        ScholarshipResponseDTO scholarshipResponseDTO = new ScholarshipResponseDTO();
+    public ScholarshipRecommendResponseDTO recommend(Long userId) throws IOException, InterruptedException {
+        ScholarshipRecommendResponseDTO scholarshipResponseDTO = new ScholarshipRecommendResponseDTO();
         Optional<User> user = userRepository.findById(userId);
         List<Scholarship> scholarship = scholarshipRepository.findAll();
         LocalDate currentDate = LocalDate.now();

@@ -1,6 +1,6 @@
 package dongguk.capstone.backend.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import dongguk.capstone.backend.scholarshipdto.ScholarshipRecommendResponseDTO;
 import dongguk.capstone.backend.scholarshipdto.ScholarshipResponseDTO;
 import dongguk.capstone.backend.service.ScholarshipService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +18,9 @@ public class ScholarshipController {
             scholarshipService;
 
     @GetMapping("/scrape")
-    private void test(){
+    private ScholarshipResponseDTO test(){
         scholarshipService.scrape();
+        return new ScholarshipResponseDTO(1);
     }
 
 //    @PostMapping("/recommend")
@@ -28,7 +29,7 @@ public class ScholarshipController {
 //    }
 
     @PostMapping("/recommend")
-    private ScholarshipResponseDTO recommend(@RequestParam("userId") Long userId) throws IOException, InterruptedException {
+    private ScholarshipRecommendResponseDTO recommend(@RequestParam("userId") Long userId) throws IOException, InterruptedException {
         return scholarshipService.recommend(userId);
     }
 }
