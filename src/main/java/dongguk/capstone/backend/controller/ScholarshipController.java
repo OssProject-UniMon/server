@@ -1,5 +1,6 @@
 package dongguk.capstone.backend.controller;
 
+import dongguk.capstone.backend.repository.ScheduleRepository;
 import dongguk.capstone.backend.scholarshipdto.ScholarshipRecommendResponseDTO;
 import dongguk.capstone.backend.scholarshipdto.ScholarshipResponseDTO;
 import dongguk.capstone.backend.service.ScholarshipService;
@@ -14,13 +15,16 @@ import java.io.IOException;
 @RequestMapping("/scholarship")
 @Slf4j
 public class ScholarshipController {
-    private final ScholarshipService
-            scholarshipService;
+    private final ScholarshipService scholarshipService;
+    private final ScheduleRepository scheduleRepository;
 
     @GetMapping("/scrape")
     private ScholarshipResponseDTO test(){
         scholarshipService.scrape();
-        return new ScholarshipResponseDTO(1);
+        if(!scheduleRepository.findAll().isEmpty()){
+            return new ScholarshipResponseDTO(1);
+        }
+        return new ScholarshipResponseDTO(0);
     }
 
 //    @PostMapping("/recommend")
