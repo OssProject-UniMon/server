@@ -138,7 +138,7 @@ public class ScholarshipService {
                 String[] index = result.split(" ");
                 List<ScholarshipDetailListDTO> resultList = new ArrayList<>();
                 for (String i : index) {
-                    ScholarshipDetailListDTO scholarshipDetailListDTO = list.get(Integer.parseInt(i) - 1);
+                    ScholarshipDetailListDTO scholarshipDetailListDTO = list.get(Integer.parseInt(i));
                     resultList.add(scholarshipDetailListDTO);
                 }
                 scholarshipResponseDTO.setScholarshipList(resultList);
