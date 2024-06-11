@@ -68,7 +68,7 @@ public class LedgerService {
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
-        barobillApiService = new BarobillApiService(BarobillApiProfile.RELEASE);
+        barobillApiService = new BarobillApiService(BarobillApiProfile.RELEASE_SSL);
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.cardRepository = cardRepository;
@@ -184,7 +184,7 @@ public class LedgerService {
             accountRepository.save(account);
 
 //          int result = barobill.RegistBankAccount("연동인증키", "사업자번호", "수집주기", "은행코드", "계좌유형", "계좌번호", ...)
-            return barobillApiService.bankAccount.registBankAccount("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "MINUTE10",
+            return barobillApiService.bankAccount.registBankAccount("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "MINUTE10",
                     accountRegistRequestDTO.getBank(), accountRegistRequestDTO.getBankAccountType(), accountRegistRequestDTO.getBankAccountNum(), accountRegistRequestDTO.getBankAccountPwd(),
                     accountRegistRequestDTO.getWebId(), accountRegistRequestDTO.getWebPwd(), accountRegistRequestDTO.getIdentityNum(),"","");
         }
@@ -211,7 +211,7 @@ public class LedgerService {
             card.setWebPwd(cardRegistRequestDTO.getWebPwd());
             cardRepository.save(card);
 
-            return barobillApiService.card.registCard("3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", card.getCardCompany(), card.getCardType(), cardEmbedded.getCardNum(),
+            return barobillApiService.card.registCard("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", card.getCardCompany(), card.getCardType(), cardEmbedded.getCardNum(),
                     card.getWebId(), card.getWebPwd(), "", "");
         }
         return 0;
