@@ -68,7 +68,7 @@ public class LedgerService {
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
-        barobillApiService = new BarobillApiService(BarobillApiProfile.RELEASE_SSL);
+        barobillApiService = new BarobillApiService(BarobillApiProfile.RELEASE);
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.cardRepository = cardRepository;
@@ -283,7 +283,7 @@ public class LedgerService {
                 // startDateString, endDateString이 바로빌에서 원하는 요청 데이터 형태랑 다른 듯???
                 // 바로빌 API를 사용하여 계좌 조회
                 PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
-                        "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
+                        "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
                         account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 10, 1, 2);
 
                 log.info("accountLog : {}",accountLog);
@@ -291,7 +291,7 @@ public class LedgerService {
 
                 // 바로빌 API를 사용하여 카드 조회
                 PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
-                        "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03", "2018204468", "capstone11",
+                        "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
                         card.getCardEmbedded().getCardNum(), startDateString, endDateString, 10, 1, 2);
 
                 log.info("cardLog : {}",cardLog);

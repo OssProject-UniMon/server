@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from openai import OpenAI
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 import time
 
 from webdriver_manager.chrome import ChromeDriverManager
@@ -91,7 +92,7 @@ def scrape_scholarships():
 
     driver.quit()
     return scholarship_details
-
+#############################################################################################################
 @app.route('/scrape_scholarships', methods=['GET'])
 def get_scholarships():
     try:
@@ -99,7 +100,7 @@ def get_scholarships():
         return jsonify(scholarships)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+###############################################################################################################
 def scholarship_recommandation(scholarship_details, user_details,today):
     load_dotenv()
 
@@ -154,17 +155,13 @@ def scholarship_recommandation(scholarship_details, user_details,today):
     # response = client.beta.threads.delete(thread.id)
     
     return output_content.value
-
+#############################################################################################################################3
 @app.route('/scholarship', methods=['POST'])
 def scholarship():
     data = request.json
     scholarship_details = data.get('scholarship_details')
     user_details = data.get('user_details')
     today = data.get('today')
-    
-    print(scholarship_details)
-    print(user_details)
-    print(today)
 
     if not scholarship_details or not user_details or not today:
         return jsonify({"error": "All parameters are required"}), 400
@@ -177,7 +174,7 @@ def scholarship():
     # except Exception as e:
     #     return jsonify({"error": str(e)}),
 
-
+###########################################################################################################################
 def classify_transactions(transaction_details):
     load_dotenv()
 
@@ -228,7 +225,7 @@ def classify_transactions(transaction_details):
     # response = client.beta.threads.delete(thread.id)
     
     return output_content.value
-
+################################################################################################################
 @app.route('/classify', methods=['POST'])
 def classify():
     data = request.json
@@ -241,6 +238,161 @@ def classify():
         return jsonify({"result": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+################################################################################################################
 
+def part_time_chat(partTimeDetails, requestMessageDetails):
+    load_dotenv()
+
+    # Initialize OpenAI Client
+    client = OpenAI(api_key='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')
+
+    ###############기존 assistant 사용하기###############
+    assistant = client.beta.assistants.retrieve(
+        assistant_id="asst_sT0Vc1tCKaYVtJZv6j1n4Zne"
+    )
+
+    #######################쓰레드 생성#######################
+    #thread = client.beta.threads.create()
+    
+    thread = client.beta.threads.retrieve("thread_u3RXmYm7Nbd0Ys6fpta4DA7j")
+    
+    ######################메세지 생성##########################
+    input = client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=requestMessageDetails
+    )
+    
+    ###############Run#################
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread.id, assistant_id=assistant.id,
+        instructions="사용자 정보: {}".format(partTimeDetails),
+        tools = [{"type": "file_search"}]
+    )
+    
+    ###############답변 출력###############
+    output = list(client.beta.threads.messages.list(thread_id=thread.id))
+
+    output_content = output[0].content[0].text
+    annotations = output_content.annotations
+
+    for index, annotation in enumerate(annotations):
+        output_content.value = output_content.value.replace(annotation.text)
+
+    # #############사용한 쓰레드 삭제: 토큰 조절용################
+    # response = client.beta.threads.delete(thread.id)
+    
+    return output_content.value
+
+@app.route('/part_time', methods=['POST'])
+def part_time():
+    try:
+        chat = part_time_chat()
+        return jsonify(chat)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+#########################################################################################################################
+
+def scrape_partTime():
+    service = Service(executable_path=ChromeDriverManager().install())
+
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_experimental_option("detach", True)
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
+
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    main_url = f"""https://www.alba.co.kr/job/main?WsSrchKeywordWord=&hidschContainText=&hidWsearchInOut=&hidSort=&hidSortOrder=&hidSortDate=&hidListView=LIST&hidSortCnt=50&hidSortFilter=Y&hidJobKind=&hidJobKindMulti=&page=1&hidSearchyn=Y&strAreaMulti=02%7C%7C%EC%A4%91%EA%B5%AC%7C%7C%EC%A0%84%EC%B2%B4&schtext=&selGugun=%EC%A4%91%EA%B5%AC&selDong=%EC%A0%84%EC%B2%B4&lastschoolcd=&careercd=&searchterm=&hidCareerCD=&hidLastSchoolCD=&hidLastPayCD=&hidPayStart=&sortCnt=50"""
+    driver.get(main_url)
+
+    wait = WebDriverWait(driver, 10)
+
+    actions = webdriver.ActionChains(driver)
+    actions.send_keys(Keys.END).perform()
+    time.sleep(2)
+
+    companies = []
+    titles = []
+    consults = []
+    pays = []
+    numbers = []
+
+    def scrape_page():
+        for i in range(50):
+            try:
+                companies.append(driver.find_element(By.XPATH, f'//*[@id="NormalInfo"]/table/tbody/tr[{i*2+1}]/td[2]/a/span[1]').text)
+                titles.append(driver.find_element(By.XPATH, f'//*[@id="NormalInfo"]/table/tbody/tr[{i*2+1}]/td[2]/a/span[2]').text)
+                consults.append(driver.find_element(By.XPATH, f'//*[@id="NormalInfo"]/table/tbody/tr[{i*2+1}]/td[3]').text)
+                pays.append(driver.find_element(By.XPATH, f'//*[@id="NormalInfo"]/table/tbody/tr[{i*2+1}]/td[4]/span[1]').text)
+                numbers.append(driver.find_element(By.XPATH, f'//*[@id="NormalInfo"]/table/tbody/tr[{i*2+1}]/td[4]/span[2]').text)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                break
+
+    for p in range(9):
+        scrape_page()
+        try:
+            next_button = wait.until(EC.element_to_be_clickable((By.XPATH, f'//*[@id="NormalInfo"]/div[2]/span[1]/a[{p+2}]')))
+            next_button.click()
+            actions.send_keys(Keys.END).perform()
+            time.sleep(2)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break
+
+    try:
+        next_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="NormalInfo"]/div[2]/span[3]/a')))
+        next_button.click()
+        actions.send_keys(Keys.END).perform()
+        time.sleep(2)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+    for p in range(9):
+        scrape_page()
+        try:
+            next_button = wait.until(EC.element_to_be_clickable((By.XPATH, f'//*[@id="NormalInfo"]/div[2]/span[2]/a[{p+2}]')))
+            next_button.click()
+            actions.send_keys(Keys.END).perform()
+            time.sleep(2)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break
+
+    driver.quit()
+
+    part_time_details = []
+    for n in range(len(companies)):
+        part_time_details.append({
+            "company": companies[n],
+            "title": titles[n],
+            "consult": consults[n],
+            "pay_type": pays[n],
+            "pay_amount": numbers[n]
+        })
+
+    with open("/mnt/data/partTime_details.txt", "w", encoding="utf-8") as f:
+        for job in part_time_details:
+            f.write(f"Company: {job['company']}\n")
+            f.write(f"Title: {job['title']}\n")
+            f.write(f"Consult: {job['consult']}\n")
+            f.write(f"Pay Type: {job['pay_type']}\n")
+            f.write(f"Pay Amount: {job['pay_amount']}\n")
+            f.write("\n")
+
+    return "/mnt/data/partTime_details.txt"
+
+@app.route('/scrape_partTime', methods=['GET'])
+def get_partTime():
+    try:
+        file_path = scrape_partTime()
+        return send_file(file_path, as_attachment=True)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

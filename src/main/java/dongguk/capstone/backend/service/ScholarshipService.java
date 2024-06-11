@@ -149,19 +149,17 @@ public class ScholarshipService {
     }
 
     private static List<ScholarshipResponseListDTO> getScholarshipResponseListDTOS(String[] index, List<Scholarship> scholarshipList) {
-        ScholarshipResponseListDTO scholarshipResponseListDTO = new ScholarshipResponseListDTO();
         List<ScholarshipResponseListDTO> resultList = new ArrayList<>();
         for (String i : index) {
             Scholarship scholarshipResponse = scholarshipList.get(Integer.parseInt(i));
+            ScholarshipResponseListDTO scholarshipResponseListDTO = new ScholarshipResponseListDTO();
             scholarshipResponseListDTO.setName(scholarshipResponse.getName());
             scholarshipResponseListDTO.setAmount(scholarshipResponse.getAmount());
             scholarshipResponseListDTO.setTarget(scholarshipResponse.getTarget());
             scholarshipResponseListDTO.setDue(scholarshipResponse.getDue());
             scholarshipResponseListDTO.setUrl(scholarshipResponse.getUrl());
-            log.info("scholarshipResponseListDTO : {}",scholarshipResponseListDTO);
             resultList.add(scholarshipResponseListDTO);
         }
-        log.info("resultList : {}",resultList);
         return resultList;
     }
 
