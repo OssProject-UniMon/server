@@ -288,10 +288,18 @@ def part_time_chat(partTimeDetails, requestMessageDetails):
 @app.route('/part_time', methods=['POST'])
 def part_time():
     try:
-        chat = part_time_chat()
-        return jsonify(chat)
+        data = request.json
+        partTimeDetails = data.get('partTimeDetails')
+        requestMessageDetails = data.get('requestMessageDetails')
+        
+        if not partTimeDetails or not requestMessageDetails:
+            return jsonify({"error": "partTimeDetails and requestMessageDetails are required"}), 400
+            
+        chat = part_time_chat(partTimeDetails, requestMessageDetails)
+        return jsonify({"result": chat})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
     
 #########################################################################################################################
 
