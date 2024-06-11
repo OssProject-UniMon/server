@@ -135,6 +135,7 @@ public class ScholarshipService {
                 log.info("result: {}",result);
                 // 여기서 result를 문자로 하나씩 나눈 뒤, 그 문자를 인덱스로 삼아서 기존 장학금 배열에서 인덱싱 하기!
                 String[] index = result.split(" ");
+                log.info("index[]: {}", (Object[]) index);
                 List<Scholarship> scholarshipList = scholarshipRepository.findAll();
                 List<ScholarshipResponseListDTO> resultList = getScholarshipResponseListDTOS(index, scholarshipList);
                 scholarshipRecommendResponseDTO.setScholarshipList(resultList);
@@ -157,8 +158,10 @@ public class ScholarshipService {
             scholarshipResponseListDTO.setTarget(scholarshipResponse.getTarget());
             scholarshipResponseListDTO.setDue(scholarshipResponse.getDue());
             scholarshipResponseListDTO.setUrl(scholarshipResponse.getUrl());
+            log.info("scholarshipResponseListDTO : {}",scholarshipResponseListDTO);
             resultList.add(scholarshipResponseListDTO);
         }
+        log.info("resultList : {}",resultList);
         return resultList;
     }
 

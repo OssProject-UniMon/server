@@ -184,7 +184,7 @@ public class LedgerService {
             accountRepository.save(account);
 
 //          int result = barobill.RegistBankAccount("연동인증키", "사업자번호", "수집주기", "은행코드", "계좌유형", "계좌번호", ...)
-            return barobillApiService.bankAccount.registBankAccount("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "MINUTE10",
+            return barobillApiService.bankAccount.registBankAccount("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "DAY1",
                     accountRegistRequestDTO.getBank(), accountRegistRequestDTO.getBankAccountType(), accountRegistRequestDTO.getBankAccountNum(), accountRegistRequestDTO.getBankAccountPwd(),
                     accountRegistRequestDTO.getWebId(), accountRegistRequestDTO.getWebPwd(), accountRegistRequestDTO.getIdentityNum(),"","");
         }

@@ -14,6 +14,11 @@ import org.springframework.web.bind.annotation.*;
 public class JobController {
     private final JobService jobService;
 
+    @GetMapping("/ready")
+    public void ready(){
+        jobService.recommendReady();
+    }
+
     @PostMapping("/recommend")
     public JobResponseDTO recommend(@RequestParam("userId") Long userId, @RequestBody JobRequestDTO jobRequestDTO){
         return jobService.recommend(userId, jobRequestDTO);
