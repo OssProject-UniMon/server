@@ -21,37 +21,23 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class ScholarActivity : AppCompatActivity() {
+    private val scholarshipList = mutableListOf<S_data>()
+    private lateinit var adapter: S_adapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scholar)
-        val userId = AppData.S_userId
 
-        //secure무시, 리트로핏 통신까지
-        val okHttpClient = NetworkConnection.createOkHttpClient()
-        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://43.202.82.18:443")
-        val ActService = retrofit.create(ManageService::class.java)
-
-        val dynamicUrl2 = "/scholarship/recommend?userId=$userId"
-        val call = ActService.price_list(dynamicUrl2)
-        call.enqueue(object : Callback<price_listResponse> {
-            override fun onResponse(call: Call<price_listResponse>, response: Response<price_listResponse>) {
-                val logs = response.body()?.scholarshipList
-                Log.d("priceResult: ", "Response: $logs")
-
-            }
-
-            override fun onFailure(call: Call<price_listResponse>, t: Throwable) {
-
-                Log.e("price_showlist", "Failed to send request to server. Error: ${t.message}")
-            }
-        })
-
+        adapter = S_adapter(scholarshipList)
         val recyclerView: RecyclerView = findViewById(R.id.resultview)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = S_adapter(getData())
+        recyclerView.adapter = adapter
         val testbutton = findViewById<Button>(R.id.shobtn1)
 
         testbutton.setOnClickListener {
+            val okHttpClient = NetworkConnection.createOkHttpClient()
+            val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://43.202.82.18:443")
+            val ActService = retrofit.create(ManageService::class.java)
             val dynamicUrl3 = "/scholarship/scrape"
             val call2 = ActService.test(dynamicUrl3)
             call2.enqueue(object : Callback<JoinResponse> {
@@ -68,15 +54,43 @@ class ScholarActivity : AppCompatActivity() {
             })
         }
 
-        // Divider 제거
-        recyclerView.addItemDecoration(NoDividerItemDecoration(this))
+        fetchData()
     }
 
-    private fun getData(): List<S_data> {
-        return listOf(
-            S_data("Title 1", "2024-06-01", "Content 1",arrayOf("지원대상1", "지원내용1", "신청기간1", "신청방법1")),
-            S_data("Title 2", "2024-06-02", "Content 2",arrayOf("지원대상1", "지원내용1", "신청기간1", "신청방법1")),
-            S_data("Title 3", "2024-06-03", "Content 3",arrayOf("지원대상1", "지원내용1", "신청기간1", "신청방법1"))
-        )
+    private fun fetchData() {
+        val userId = AppData.S_userId
+        val okHttpClient = NetworkConnection.createOkHttpClient()
+        val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://43.202.82.18:443")
+        val ActService = retrofit.create(ManageService::class.java)
+
+        val dynamicUrl2 = "/scholarship/recommend?userId=$userId"
+        val call = ActService.price_list(dynamicUrl2)
+        call.enqueue(object : Callback<price_listResponse> {
+            override fun onResponse(call: Call<price_listResponse>, response: Response<price_listResponse>) {
+                val logs = response.body()?.scholarshipList
+                logs?.let {
+                    for (scholarship in it) {
+                        val detailsArray = arrayOf(
+                            scholarship.amount,
+                            scholarship.target,
+                            scholarship.url,
+                            "" // 빈 문자열 추가
+                        )
+                        val sData = S_data(
+                            scholarship.name,
+                            scholarship.due,
+                            "", // content는 비어있음
+                            detailsArray
+                        )
+                        scholarshipList.add(sData)
+                    }
+                    adapter.notifyDataSetChanged()
+                }
+            }
+
+            override fun onFailure(call: Call<price_listResponse>, t: Throwable) {
+                Log.e("price_showlist", "Failed to send request to server. Error: ${t.message}")
+            }
+        })
     }
 }

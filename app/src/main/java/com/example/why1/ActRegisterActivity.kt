@@ -64,7 +64,7 @@ class ActRegisterActivity : AppCompatActivity() {
 
             //계좌 연동하기, 일단 임시로 리퀘스트값 채웠음,버튼 누르면 서버통신 ,나중에 변수로 바꿔
             val dynamicUrl = "/account/account-regist?userId=$userid"
-            val call = ActService.act_register(dynamicUrl, act_RegisterRequest("IBK","P","98003545601011", "4625","I2000110216012","wodbs7399!",""))
+            val call = ActService.act_register(dynamicUrl, act_RegisterRequest("IBK","P","98003545601011", "4625","","","001031"))
             call.enqueue(object : Callback<JoinResponse> {
                 override fun onResponse(call: Call<JoinResponse>, response: Response<JoinResponse>) {
                     val serverResponse = response.body()

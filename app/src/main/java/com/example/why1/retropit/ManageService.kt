@@ -34,4 +34,13 @@ interface ManageService {
 
     @GET
     fun test(@Url url: String): Call<JoinResponse>
+
+    @POST
+    fun test_actlist(@Url url: String): Call<act_listResponse>
+
+    @POST
+    fun response_register(@Url url: String, @Body credential: AnsRequest): Call<AnsResponse>
+
+    @GET
+    fun ready(@Url url: String): Call<JoinResponse>
 }

@@ -84,6 +84,11 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.detailButtongo2.setOnClickListener {
+            val intent = Intent(this, ChatActivity::class.java)
+            startActivity(intent)
+        }
+
         scheduleGrid = findViewById(R.id.scheduleGrid)
         initializeGrid()
 

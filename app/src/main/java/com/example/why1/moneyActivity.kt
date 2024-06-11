@@ -76,6 +76,7 @@ class moneyActivity : AppCompatActivity() {
         val myact = findViewById<TextView>(R.id.text3)
         val new_btn = findViewById<Button>(R.id.renew)
         val setting_btn = findViewById<ImageButton>(R.id.btnsetting)
+        val restart_btn = findViewById<Button>(R.id.renew)
 
         //스피너 처리
         var sp1_Result = ""
@@ -156,6 +157,45 @@ class moneyActivity : AppCompatActivity() {
         setting_btn.setOnClickListener {
             val intent = Intent(this@moneyActivity, ChartActivity::class.java)
             startActivity(intent)
+        }
+
+        restart_btn.setOnClickListener {
+            val dynamicUrl3 = "/account/test?userId=$userId"
+            val call2 = ActService.test_actlist(dynamicUrl3)
+            call2.enqueue(object : Callback<act_listResponse> {
+                override fun onResponse(call: Call<act_listResponse>, response: Response<act_listResponse>) {
+                    val logs = response.body()?.logList
+                    Log.d("moneyResult: ", "Response: $logs")
+
+                    var count = 1
+                    logs?.forEach { log ->
+                        val depositOrWithdraw = if (log.deposit != "0") "+"+log.deposit+"원" else "-"+log.withdraw+"원"
+                        val formattedDate = parseDate(log.date) // 날짜 형식을 적절히 변환
+                        val accountData = AccountData(
+                            log.category, //분류 태그 (여기에 카테고리가 와야함)
+                            depositOrWithdraw, //출금or입금금액
+                            formattedDate, // 날짜
+                            log.balance, // !!여기를 밸런스(잔액)을 들어가게 하자!!
+                            log.useStoreName // 상호명
+                        )
+                        accountList.add(accountData)
+                        count++
+                    }
+                    // 배열에 잘 들어갔는지 확인하는 로그 출력
+                    Log.d("accountList", "Size: ${accountList.size}")
+                    accountList.forEachIndexed { index, accountData ->
+                        Log.d("accountList", "Item $index: $accountData")}
+
+                    val mainlistview = findViewById<ListView>(R.id.moneyListView)
+                    val accountadapter = Accountadapter(this@moneyActivity, accountList)
+                    mainlistview.adapter = accountadapter
+                }
+
+                override fun onFailure(call: Call<act_listResponse>, t: Throwable) {
+
+                    Log.e("act_showlist", "Failed to send request to server. Error: ${t.message}")
+                }
+            })
         }
 
         //통신 성공하면 연결 버튼 사라지게 하는거

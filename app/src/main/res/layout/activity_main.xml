@@ -60,6 +60,45 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/title2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginLeft="30dp"
+                android:text="Chat DPT의 핵심기능!! 나만의 비서AI"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"/>
+
+            <TextView
+                android:id="@+id/date2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="지금 비서AI와 채팅을 주고받으며 조언을 구하세요!"
+                android:layout_marginLeft="30dp"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="4dp"/>
+
+            <Button
+                android:id="@+id/detailButtongo2"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:background="@drawable/background_radius"
+                android:layout_marginLeft="285dp"
+                android:text="추천받기"
+                android:textColor="@color/white"
+                android:layout_marginTop="70dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/wal"
+            android:orientation="vertical">
+
+            <TextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -110,6 +149,13 @@
                 android:background="@drawable/background_radius"
                 />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
         </LinearLayout>
 
         <Button
