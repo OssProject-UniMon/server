@@ -35,9 +35,9 @@ public class ScholarshipService {
     private final UserRepository userRepository;
     private final ScholarshipRepository scholarshipRepository;
 //    private static final String SCRAPE_FLASK_SERVER_URL = "http://127.0.0.1:5000/scrape_scholarships";
-    private static final String SCRAPE_FLASK_SERVER_URL = "http://172.31.47.145:5000/scrape_scholarships";
+    private static final String SCRAPE_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_scholarships";
 //    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://127.0.0.1:5000/scholarship";
-    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://172.31.47.145:5000/scholarship";
+    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scholarship";
 
 
     private final ObjectMapper objectMapper = new ObjectMapper();

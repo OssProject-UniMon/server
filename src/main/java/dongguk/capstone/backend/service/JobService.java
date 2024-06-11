@@ -37,7 +37,7 @@ public class JobService {
     private final ScheduleRepository scheduleRepository;
     private final JobRepository jobRepository;
 //    private static final String PARTTIME_FLASK_SERVER_URL = "http://127.0.0.1:5000/part_time";
-    private static final String PARTTIME_FLASK_SERVER_URL = "http://172.31.47.145:5000/part_time";
+    private static final String PARTTIME_FLASK_SERVER_URL = "http://13.124.16.179:5000/part_time";
 
     private static final List<Integer> DAWN_LIST = Arrays.asList(1, 2, 3, 4, 5, 6);
     private static final List<Integer> MORNING_LIST = Arrays.asList(7, 8, 9, 10, 11, 12);

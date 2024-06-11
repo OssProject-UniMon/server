@@ -63,7 +63,7 @@ public class LedgerService {
     private final LogRepository logRepository;
     private final BarobillApiService barobillApiService;
 
-    private static final String LEDGER_FLASK_SERVER_URL = "http://172.31.47.145:5000/classify";
+    private static final String LEDGER_FLASK_SERVER_URL = "http://13.124.16.179:5000/classify";
 //    private static final String LEDGER_FLASK_SERVER_URL = "http://127.0.0.1:5000/classify";
 
 
