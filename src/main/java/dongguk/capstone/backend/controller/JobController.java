@@ -1,5 +1,6 @@
 package dongguk.capstone.backend.controller;
 
+import dongguk.capstone.backend.jobdto.JobReadyResponseDTO;
 import dongguk.capstone.backend.jobdto.JobRequestDTO;
 import dongguk.capstone.backend.jobdto.JobResponseDTO;
 import dongguk.capstone.backend.service.JobService;
@@ -15,8 +16,9 @@ public class JobController {
     private final JobService jobService;
 
     @GetMapping("/ready")
-    public void ready(){
+    public JobReadyResponseDTO ready(){
         jobService.recommendReady();
+        return new JobReadyResponseDTO(1);
     }
 
     @PostMapping("/recommend")
