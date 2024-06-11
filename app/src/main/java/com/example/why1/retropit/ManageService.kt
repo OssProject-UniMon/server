@@ -28,4 +28,10 @@ interface ManageService {
 
     @GET
     fun sch_list(@Url url: String): Call<Sch_listResponse>
+
+    @POST
+    fun price_list(@Url url: String): Call<price_listResponse>
+
+    @GET
+    fun test(@Url url: String): Call<JoinResponse>
 }

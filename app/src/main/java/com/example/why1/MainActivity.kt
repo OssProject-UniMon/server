@@ -6,6 +6,7 @@ import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.SparseIntArray
 import android.widget.Button
 import android.widget.GridLayout
 import android.widget.ListView
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding : ActivityMainBinding
     private lateinit var scheduleGrid: GridLayout
     private val schedules = mutableListOf<Schedule>()
+    private val rowHeights = SparseIntArray() // 행 높이를 저장하기 위한 배열
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -165,6 +167,28 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 scheduleGrid.addView(textView)
+                updateRowHeight(row, textView) //시간표행도 커진 스케쥴에 맞춰서 커지게함!! 쥰나 쩔어
+            }
+        }
+    }
+
+    private fun updateRowHeight(row: Int, textView: TextView) {
+        textView.post {
+            val height = textView.height
+            if (height > rowHeights[row]) {
+                rowHeights.put(row, height)
+                adjustRowHeight(row, height)
+            }
+        }
+    }
+
+    private fun adjustRowHeight(row: Int, height: Int) {
+        for (i in 0 until scheduleGrid.childCount) {
+            val view = scheduleGrid.getChildAt(i)
+            val params = view.layoutParams as GridLayout.LayoutParams
+            if (params.rowSpec == GridLayout.spec(row)) {
+                params.height = height
+                view.layoutParams = params
             }
         }
     }
