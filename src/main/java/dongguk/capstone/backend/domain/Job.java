@@ -10,7 +10,7 @@ import lombok.Setter;
 @Table(name = "job")
 public class Job {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "job_id")
     private Long jobId;
 

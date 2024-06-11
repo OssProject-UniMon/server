@@ -10,4 +10,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     @Query("SELECT j FROM Job j WHERE j.userId = :userId")
     Optional<Job> findJobByUserId(Long userId);
+
+    @Query("SELECT j.jobId FROM Job j WHERE j.userId = :userId")
+    Long findJobIdByUserId(Long userId);
 }

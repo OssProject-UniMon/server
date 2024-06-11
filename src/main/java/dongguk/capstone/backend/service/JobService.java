@@ -161,6 +161,13 @@ public class JobService {
             String withdrawSumResult = String.valueOf(withdrawSum);
 
             Job job = new Job();
+            Long jobId = jobRepository.findJobIdByUserId(user.getUserId()); // 해당 userId의 최대 logId를 가져옴
+            if (jobId == null) {
+                jobId = 1L; // 최대 logId가 없으면 1로 초기화
+            } else {
+                jobId++; // 최대 logId가 있으면 1 증가
+            }
+            job.setJobId(jobId);
             job.setUserId(user.getUserId());
             job.setDistrict(userDistrict);
             job.setWithdrawSum(withdrawSumResult);
