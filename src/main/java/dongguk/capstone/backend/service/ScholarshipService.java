@@ -34,8 +34,8 @@ import java.util.Optional;
 public class ScholarshipService {
     private final UserRepository userRepository;
     private final ScholarshipRepository scholarshipRepository;
-//    private static final String SCRAPE_FLASK_SERVER_URL = "http://127.0.0.1:5000/scrape_scholarships";
-    private static final String SCRAPE_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_scholarships";
+//    private static final String SCRAPE_SCHOLASHIP_FLASK_SERVER_URL = "http://127.0.0.1:5000/scrape_scholarships";
+    private static final String SCRAPE_SCHOLASHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_scholarships";
 //    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://127.0.0.1:5000/scholarship";
     private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scholarship";
 
@@ -55,14 +55,14 @@ public class ScholarshipService {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(SCRAPE_FLASK_SERVER_URL))
+                    .uri(new URI(SCRAPE_SCHOLASHIP_FLASK_SERVER_URL))
                     .GET()
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             scholarships = parseResponse(response.body());
         } catch (Exception e) {
-            log.error("An error occurred while fetching scholarships from {}: {}", ScholarshipService.SCRAPE_FLASK_SERVER_URL, e.getMessage());
+            log.error("An error occurred while fetching scholarships from {}: {}", ScholarshipService.SCRAPE_SCHOLASHIP_FLASK_SERVER_URL, e.getMessage());
         }
 
         return scholarships;

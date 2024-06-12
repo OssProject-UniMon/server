@@ -4,10 +4,7 @@ package dongguk.capstone.backend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dongguk.capstone.backend.domain.Job;
-import dongguk.capstone.backend.domain.Log;
-import dongguk.capstone.backend.domain.Schedule;
-import dongguk.capstone.backend.domain.User;
+import dongguk.capstone.backend.domain.*;
 import dongguk.capstone.backend.jobdto.JobRequestDTO;
 import dongguk.capstone.backend.jobdto.JobResponseDTO;
 import dongguk.capstone.backend.repository.JobRepository;
@@ -36,6 +33,9 @@ public class JobService {
     private final LogRepository logRepository;
     private final ScheduleRepository scheduleRepository;
     private final JobRepository jobRepository;
+
+//        private static final String PARTTIME_SCRAPE_FLASK_SERVER_URL = "http://127.0.0.1:5000/scrape_partTime";
+    private static final String PARTTIME_SCRAPE_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_partTime";
 //    private static final String PARTTIME_FLASK_SERVER_URL = "http://127.0.0.1:5000/part_time";
     private static final String PARTTIME_FLASK_SERVER_URL = "http://13.124.16.179:5000/part_time";
 
@@ -86,8 +86,23 @@ public class JobService {
         return jobResponseDTO;
     }
 
+    private void fetchJobsFromUrl() {
+        HttpClient client = HttpClient.newHttpClient();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(PARTTIME_SCRAPE_FLASK_SERVER_URL))
+                    .GET()
+                    .build();
+            client.sendAsync(request, HttpResponse.BodyHandlers.discarding());
+            log.info("Successfully sent request for scholarships data.");
+        } catch (Exception e) {
+            log.error("An error occurred while fetching scholarships from the following URL: {}: {}", PARTTIME_SCRAPE_FLASK_SERVER_URL, e.getMessage());
+        }
+    }
+
     @Scheduled(fixedRate = 3600000)
     public void recommendReady() {
+        fetchJobsFromUrl();
         List<User> users = userRepository.findAll();
         for (User user : users) {
             List<Log> logList = logRepository.findLogsByUserId(user.getUserId());

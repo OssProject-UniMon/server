@@ -98,6 +98,7 @@ public class LedgerService {
 
             if (response.statusCode() == 200) {
                 JsonNode responseJson = mapper.readTree(response.body());
+                log.info("responseJson : {}",responseJson);
                 return responseJson.path("result").asText();
             } else {
                 log.error("Failed to classify transaction: {}", response.body());
@@ -108,49 +109,6 @@ public class LedgerService {
             throw new RuntimeException("Exception occurred while classifying transaction", e);
         }
     }
-
-//    public JsonNode callChatGpt(String userMsg) throws JsonProcessingException{
-//        final String url = "https://api.openai.com/v1/chat/completions";
-//
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        headers.setBearerAuth(apikey);
-//
-//        ObjectMapper objectMapper = new ObjectMapper();
-//
-//        Map<String, Object> bodyMap = getStringObjectMap(userMsg);
-//
-//        String body = objectMapper.writeValueAsString(bodyMap);
-//
-//        HttpEntity<String> request = new HttpEntity<>(body,headers);
-//
-//        RestTemplate restTemplate = new RestTemplate();
-//        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-//
-//        return objectMapper.readTree(response.getBody());
-//    }
-//
-//    private static Map<String, Object> getStringObjectMap(String userMsg) {
-//        Map<String,Object> bodyMap = new HashMap<>();
-//        bodyMap.put("model","gpt-4");
-//
-//        List<Map<String, String>> messages = new ArrayList<>();
-//        Map<String, String> userMessage = new HashMap<>();
-//        userMessage.put("role","user");
-//        userMessage.put("content", userMsg);
-//        messages.add(userMessage);
-//
-//        Map<String, String> assistantMesssage = new HashMap<>();
-//        assistantMesssage.put("role","system");
-//        assistantMesssage.put("content","당신은 제가 보내주는 업종을 부가적인 설명 없이, 가계부의 내역에 들어갈 오직 하나의 비용 종류를 매핑해서 알려주는 AI입니다." +
-//                "매핑할 비용 종류는 식비, 문화비, 카페, 스포츠, 숙박비, 잡화소매, 쇼핑비, 개인이체, 교통비, 의료비, 보험비, 구독/정기결제, 교육비 이렇게 있습니다.");
-//        messages.add(assistantMesssage);
-//
-//        bodyMap.put("messages",messages);
-//        return bodyMap;
-//    }
-
 
     /**
      * 계좌 등록 로직
