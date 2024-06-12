@@ -242,15 +242,14 @@ public class LedgerService {
                 // 바로빌 API를 사용하여 계좌 조회
                 PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
                         "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
-                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 10, 1, 2);
+                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 100, 1, 2);
 
                 log.info("accountLog : {}",accountLog);
-
 
                 // 바로빌 API를 사용하여 카드 조회
                 PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
                         "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
-                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 10, 1, 2);
+                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 100, 1, 2);
 
                 log.info("cardLog : {}",cardLog);
 
