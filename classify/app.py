@@ -382,7 +382,12 @@ def scrape_partTime():
             "pay_amount": numbers[n]
         })
 
-    with open("/mnt/data/partTime_details.txt", "w", encoding="utf-8") as f:
+    desktop_path = "C:\\Users\\Administrator\\Desktop"
+    if not os.path.exists(desktop_path):
+        os.makedirs(desktop_path)
+    
+    file_path = os.path.join(desktop_path, "partTime_details.txt")
+    with open(file_path, "w", encoding="utf-8") as f:
         for job in part_time_details:
             f.write(f"Company: {job['company']}\n")
             f.write(f"Title: {job['title']}\n")
@@ -391,7 +396,7 @@ def scrape_partTime():
             f.write(f"Pay Amount: {job['pay_amount']}\n")
             f.write("\n")
 
-    return "/mnt/data/partTime_details.txt"
+    return file_path
 
 @app.route('/scrape_partTime', methods=['GET'])
 def get_partTime():

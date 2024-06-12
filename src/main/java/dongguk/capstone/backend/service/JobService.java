@@ -100,9 +100,14 @@ public class JobService {
         }
     }
 
-    @Scheduled(fixedRate = 3600000)
-    public void recommendReady() {
+    // 스케줄링된 작업을 직접 호출하는 메서드
+    public void fetchJobsAndRecommend() {
         fetchJobsFromUrl();
+        recommendReady();
+    }
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void recommendReady() {
         List<User> users = userRepository.findAll();
         for (User user : users) {
             List<Log> logList = logRepository.findLogsByUserId(user.getUserId());

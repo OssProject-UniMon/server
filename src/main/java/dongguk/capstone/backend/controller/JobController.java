@@ -17,7 +17,7 @@ public class JobController {
 
     @GetMapping("/ready")
     public JobReadyResponseDTO ready(){
-        jobService.recommendReady();
+        jobService.fetchJobsAndRecommend();
         return new JobReadyResponseDTO(1);
     }
 
