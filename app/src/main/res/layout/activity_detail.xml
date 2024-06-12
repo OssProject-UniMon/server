@@ -4,6 +4,9 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="8dp">
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -40,6 +43,14 @@
             android:layout_marginTop="50dp"
             android:textColor="@android:color/black"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/black"
+            android:layout_marginTop="16dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp" />
+
         <TextView
             android:id="@+id/targetTextView"
             android:layout_width="wrap_content"
@@ -68,6 +79,7 @@
             android:layout_marginLeft="30dp"
             android:textSize="16sp"
             android:layout_marginTop="50dp"
+            android:autoLink="web"
             android:textColor="@android:color/black"/>
 
         <TextView
@@ -81,4 +93,5 @@
             android:textColor="@android:color/black"/>
 
     </LinearLayout>
+    </ScrollView>
 </LinearLayout>

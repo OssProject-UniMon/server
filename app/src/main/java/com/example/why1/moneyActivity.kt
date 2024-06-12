@@ -62,6 +62,7 @@ class moneyActivity : AppCompatActivity() {
         //accountList.add(sampleData10)
         val access_code = AppData.Access_code // 공용변수 엑세스 코드 불러오기
         val userId = AppData.S_userId // 공용변수 유저 아이디 불러오기
+        val u_name = AppData.user_nick
         Log.d("access_code", "code::Response: $access_code")
         Log.d("userId", "code::Response: $userId")
 
@@ -71,12 +72,14 @@ class moneyActivity : AppCompatActivity() {
         //mainlistview.adapter = accountadapter
         //레이아웃 처리
         val act_btn = findViewById<Button>(R.id.btn_account_str)
-        val mymoney = findViewById<TextView>(R.id.text1)
-        val myname = findViewById<TextView>(R.id.text2)
+        var mymoney = findViewById<TextView>(R.id.text1) // 잔액
+        val myname = findViewById<TextView>(R.id.text2) // 닉네임
         val myact = findViewById<TextView>(R.id.text3)
         val new_btn = findViewById<Button>(R.id.renew)
         val setting_btn = findViewById<ImageButton>(R.id.btnsetting)
         val restart_btn = findViewById<Button>(R.id.renew)
+
+        myname.text = u_name+"님의 통장"
 
         //스피너 처리
         var sp1_Result = ""
@@ -129,6 +132,9 @@ class moneyActivity : AppCompatActivity() {
                             log.useStoreName // 상호명
                         )
                         accountList.add(accountData)
+                        if(count == 1){
+                            mymoney.text = log.balance +"원"
+                        }
                         count++
                     }
                     // 배열에 잘 들어갔는지 확인하는 로그 출력

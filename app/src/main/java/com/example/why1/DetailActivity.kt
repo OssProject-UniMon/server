@@ -1,5 +1,7 @@
 package com.example.why1
 
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
@@ -30,6 +32,14 @@ class DetailActivity : AppCompatActivity() {
             descriptionTextView.text = it[1]
             periodTextView.text = it[2]
             methodTextView.text = it[3]
+        }
+
+        periodTextView.setOnClickListener {
+            val url = periodTextView.text.toString()
+            if (url.isNotEmpty()) {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(intent)
+            }
         }
     }
 

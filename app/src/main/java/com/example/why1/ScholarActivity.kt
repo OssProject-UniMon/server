@@ -33,6 +33,7 @@ class ScholarActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
         val testbutton = findViewById<Button>(R.id.shobtn1)
+        val renew_btn = findViewById<Button>(R.id.policybtn2)
 
         testbutton.setOnClickListener {
             val okHttpClient = NetworkConnection.createOkHttpClient()
@@ -54,7 +55,9 @@ class ScholarActivity : AppCompatActivity() {
             })
         }
 
-        fetchData()
+        renew_btn.setOnClickListener {
+            fetchData()
+        }
     }
 
     private fun fetchData() {

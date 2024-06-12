@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="130dp"
                 android:layout_marginTop="5dp"
-                android:gravity="left"
+                android:gravity="center"
                 android:text="1105-00-411959"
                 android:textSize="20sp"
                 android:visibility="visible" />
@@ -93,7 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="130dp"
                 android:layout_marginTop="5dp"
-                android:gravity="left"
+                android:gravity="center"
                 android:text="469,029원"
                 android:textSize="35sp"
                 android:textStyle="bold"
