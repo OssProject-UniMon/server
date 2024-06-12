@@ -347,13 +347,13 @@ public class LedgerService {
         LogsResponseDTO logsResponseDTO = new LogsResponseDTO(); // 거래 내역 로그 응답
 
         List<Log> logs = logRepository.findAll();
-        List<LogsListDTO> list = new ArrayList<>();
+        List<LogListResponseDTO> list = new ArrayList<>();
 
         log.info("logs : {}", logs);
 
         for (Log l : logs) {
             if (userId.equals(l.getLogEmbedded().getUserId())) {
-                LogsListDTO logsListDTO = new LogsListDTO();
+                LogListResponseDTO logsListDTO = new LogListResponseDTO();
                 logsListDTO.setDeposit(l.getDeposit());
                 logsListDTO.setWithdraw(l.getWithdraw());
                 logsListDTO.setBalance(l.getBalance());

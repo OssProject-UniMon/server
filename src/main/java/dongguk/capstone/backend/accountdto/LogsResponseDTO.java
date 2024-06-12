@@ -10,5 +10,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LogsResponseDTO {
-    private List<LogsListDTO> logList;
+    private List<LogListResponseDTO> logList;
 }

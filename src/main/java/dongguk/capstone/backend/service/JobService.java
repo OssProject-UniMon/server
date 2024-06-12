@@ -182,7 +182,10 @@ public class JobService {
                 log.error("Error serializing common times", e);
             }
 
-//            if(jobRepository.findJobByUserId(user.getUserId()))
+            // 여기서 기존에 userId가 있는 job이 있으면 제거하고 다시 생성하는 것으로 변경!!!!!!!!!!!
+            Optional<Job> existingJob = jobRepository.findJobByUserId(user.getUserId());
+            existingJob.ifPresent(jobRepository::delete);
+
             jobRepository.save(job);
         }
     }
