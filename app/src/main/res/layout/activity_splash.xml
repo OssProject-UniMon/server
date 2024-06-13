@@ -17,5 +17,5 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/app_back_2" />
+        app:srcCompat="@drawable/app_new1" />
 </androidx.constraintlayout.widget.ConstraintLayout>

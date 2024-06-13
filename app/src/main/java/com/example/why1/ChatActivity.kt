@@ -28,7 +28,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var inputEditText: EditText
     private lateinit var sendButton: Button
     private lateinit var scrollView: ScrollView
-    private var botAnswer = "안녕하세요! chat DPT 응답을 사용해주셔서 감사합니다!"
+    private var botAnswer = "안녕하세요! 나만의 비서 응답을 사용해주셔서 감사합니다!"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -37,6 +37,7 @@ class ChatActivity : AppCompatActivity() {
         inputEditText = findViewById(R.id.inputEditText)
         sendButton = findViewById(R.id.sendButton)
         scrollView = findViewById(R.id.scrollView)
+        val renewbtn = findViewById<Button>(R.id.updatebtn)
         val userId = AppData.S_userId
 
         //secure무시, 리트로핏 통신까지
@@ -44,6 +45,7 @@ class ChatActivity : AppCompatActivity() {
         val retrofit = NetworkConnection.createRetrofit(okHttpClient, "https://43.202.82.18:443")
         val ActService = retrofit.create(ManageService::class.java)
 
+        renewbtn.setOnClickListener {
         val dynamicUrl2 = "/job/ready"
         val call2 = ActService.ready(dynamicUrl2)
         call2.enqueue(object : Callback<JoinResponse> {
@@ -57,6 +59,7 @@ class ChatActivity : AppCompatActivity() {
                 Log.e("ans_register", "Failed to send request to server. Error: ${t.message}")
             }
         })
+        }
 
         sendButton.setOnClickListener {
             val userInput = inputEditText.text.toString()

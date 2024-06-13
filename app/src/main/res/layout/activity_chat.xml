@@ -5,6 +5,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
+    <Button
+        android:id="@+id/updatebtn"
+        android:layout_marginLeft="14dp"
+        android:layout_marginRight="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="UniMon 알바 추천AI"
+        android:textSize="15sp"
+        android:textColor="#ffffff"
+        android:background="@drawable/background_radius"
+        />
 
     <ScrollView
         android:id="@+id/scrollView"

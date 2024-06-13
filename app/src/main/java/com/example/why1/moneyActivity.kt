@@ -161,7 +161,7 @@ class moneyActivity : AppCompatActivity() {
         }
 
         setting_btn.setOnClickListener {
-            val intent = Intent(this@moneyActivity, ChartActivity::class.java)
+            val intent = Intent(this@moneyActivity, CalActivity::class.java)
             startActivity(intent)
         }
 
