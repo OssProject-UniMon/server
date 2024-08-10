@@ -64,7 +64,6 @@ public class LedgerService {
     private final BarobillApiService barobillApiService;
 
     private static final String LEDGER_FLASK_SERVER_URL = "http://13.124.16.179:5000/classify";
-//    private static final String LEDGER_FLASK_SERVER_URL = "http://127.0.0.1:5000/classify";
 
 
     public LedgerService(UserRepository userRepository, AccountRepository accountRepository, CardRepository cardRepository, LogRepository logRepository) throws MalformedURLException {
@@ -117,15 +116,6 @@ public class LedgerService {
      * @return
      */
     public int accountRegist(Long userId, AccountRegistRequestDTO accountRegistRequestDTO) {
-        // 먼저 Account 도메인(Entity)를 선언하고, 거기에 AccountRegistRequestDTO 내용 다 넣기
-        // 그 다음, 내용을 다 넣은 Account를 AccountRepository에 넣기
-        // Account account = new Account(); 이걸 만드는 것이 맞나? 바로빌 API대로 해야되는 것 아닌가?
-        // 바로빌 테스트 코드 참고하면서 하자
-
-
-        // 혹시 이렇게 AccountRegistRequestDTO로 받아온 내용들을,
-        // DB에도 저장하고 바로빌 서비스에도 저장해야 되는걸까?
-        // 그래야 이렇게 등록하고, 나중에 거래 내역 조회할 때 DB에 내용 들고와서 바로빌의 입출금 내역 조회 API 사용할 수 있으니까..?!
         Account account = new Account();
         AccountEmbedded accountEmbedded = new AccountEmbedded();
         if(userRepository.findById(userId).isPresent()) {
@@ -141,10 +131,10 @@ public class LedgerService {
             account.setIdentityNum(accountRegistRequestDTO.getIdentityNum());
             accountRepository.save(account);
 
-//          int result = barobill.RegistBankAccount("연동인증키", "사업자번호", "수집주기", "은행코드", "계좌유형", "계좌번호", ...)
             return barobillApiService.bankAccount.registBankAccount("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "DAY1",
-                    accountRegistRequestDTO.getBank(), accountRegistRequestDTO.getBankAccountType(), accountRegistRequestDTO.getBankAccountNum(), accountRegistRequestDTO.getBankAccountPwd(),
-                    accountRegistRequestDTO.getWebId(), accountRegistRequestDTO.getWebPwd(), accountRegistRequestDTO.getIdentityNum(),"","");
+                    accountRegistRequestDTO.getBank(), accountRegistRequestDTO.getBankAccountType(), accountRegistRequestDTO.getBankAccountNum(),
+                    accountRegistRequestDTO.getBankAccountPwd(), accountRegistRequestDTO.getWebId(),
+                    accountRegistRequestDTO.getWebPwd(), accountRegistRequestDTO.getIdentityNum(),"","");
         }
         return 0;
     }
@@ -169,8 +159,8 @@ public class LedgerService {
             card.setWebPwd(cardRegistRequestDTO.getWebPwd());
             cardRepository.save(card);
 
-            return barobillApiService.card.registCard("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", card.getCardCompany(), card.getCardType(), cardEmbedded.getCardNum(),
-                    card.getWebId(), card.getWebPwd(), "", "");
+            return barobillApiService.card.registCard("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", card.getCardCompany(), card.getCardType(),
+                    cardEmbedded.getCardNum(), card.getWebId(), card.getWebPwd(), "", "");
         }
         return 0;
     }
@@ -230,14 +220,6 @@ public class LedgerService {
             logRepository.deleteByLogEmbeddedUserId(user.getUserId());
 
             try {
-
-                log.info("account : {}",account);
-                log.info("accountNum : {}",account.getAccountEmbedded().getBankAccountNum());
-
-                log.info("card : {}",card);
-                log.info("cardNum : {}",card.getCardEmbedded().getCardNum());
-
-                // startDateString, endDateString이 바로빌에서 원하는 요청 데이터 형태랑 다른 듯???
                 // 바로빌 API를 사용하여 계좌 조회
                 PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
                         "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
@@ -270,11 +252,8 @@ public class LedgerService {
                             }
                             if (!bankAccountLogEx.getTransType().contains("이체")) {
                                 // 여기에 transType 안에 "이체" 라는 단어가 없는 계좌 내역에 한해서 진행 (if문 사용)
-                                log.info("bankAccountLogEx.getTransDT() : {}", bankAccountLogEx.getTransDT());
-                                log.info("cardLogEx.getUseDT() : {}", cardLogEx.getUseDT());
-                                // 계좌 결제 내역과 카드 결제 정보를 순서대로 넣으면 곧 일시 순서대로 넣는다
                                 LogsListDTO logsListDTO = getLogsListDTO(bankAccountLogEx, cardLogEx); // 여기서 IOException이 발생할 수 있기 때문에 try-catch문 사용
-                                // 2. LogsListDTO를 Log 엔티티로 매핑하여 저장
+                                // 2. LogsListDTO를 Log 엔티티로 매핑하여 저장 
                                 Log logEntity = mapToLogEntity(user.getUserId(),cardLogEx.getCardNum(),logsListDTO);
                                 logRepository.save(logEntity); // LogRepository를 통해 저장
                                 processedCardLogs.add(cardLogEx); // 처리된 카드 로그를 리스트에 추가

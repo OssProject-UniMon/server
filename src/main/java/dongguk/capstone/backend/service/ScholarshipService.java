@@ -34,9 +34,7 @@ import java.util.Optional;
 public class ScholarshipService {
     private final UserRepository userRepository;
     private final ScholarshipRepository scholarshipRepository;
-//    private static final String SCRAPE_SCHOLASHIP_FLASK_SERVER_URL = "http://127.0.0.1:5000/scrape_scholarships";
     private static final String SCRAPE_SCHOLASHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_scholarships";
-//    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://127.0.0.1:5000/scholarship";
     private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scholarship";
 
 
@@ -115,7 +113,9 @@ public class ScholarshipService {
             scholarshipDetailDTO.setScholarshipDetailList(list);
 
             HttpClient client = HttpClient.newHttpClient();
-            String requestBody = objectMapper.writeValueAsString(Map.of("scholarship_details", scholarshipDetailDTO, "user_details", scholarshipUserDetailDTO, "today", today));
+            String requestBody = objectMapper.writeValueAsString(Map.of("scholarship_details", scholarshipDetailDTO,
+                    "user_details", scholarshipUserDetailDTO,
+                    "today", today));
             byte[] requestBodyBytes = requestBody.getBytes(StandardCharsets.UTF_8);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -166,7 +166,8 @@ public class ScholarshipService {
     private static ScholarshipUserDetailDTO getScholarshipUserDetailDTO(Optional<User> user) {
         if (user.isPresent()) {
             User userInfo = user.get();
-            return new ScholarshipUserDetailDTO(userInfo.getMajor(), userInfo.getGrade(), userInfo.getGender(), userInfo.getIncomeBracket(), userInfo.getScholarshipStatus(), userInfo.getDistrict());
+            return new ScholarshipUserDetailDTO(userInfo.getMajor(), userInfo.getGrade(), userInfo.getGender(),
+                    userInfo.getIncomeBracket(), userInfo.getScholarshipStatus(), userInfo.getDistrict());
         }
         return null;
     }

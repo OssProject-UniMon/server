@@ -30,9 +30,8 @@ public class UserService {
      * @return
      */
     // DTO로 얻은 데이터 값들을 Entity로 전달하는 작업은 비즈니스 로직이므로 Service에서 이루어짐.
-    public User save(SignupRequestDTO signupRequestDTO) { // 여기서 DTO가 아니라 user를 해야될 듯
+    public User save(SignupRequestDTO signupRequestDTO) {
         User user = new User();
-        // 근데 여기에 if문으로 조건이 붙어야 되지 않을까? 예를 들어 이메일 확인 되면 이 밑에 애들이 진행되게끔..!
         user.setNickname(signupRequestDTO.getNickname());
         user.setEmail(signupRequestDTO.getEmail());
         user.setPassword(signupRequestDTO.getPassword());
@@ -45,10 +44,6 @@ public class UserService {
         user.setAccountStatus(0); // 회원가입 시에는 계좌가 등록되어 있지 않은 상태이므로 0
         user.setCardStatus(0); // 회원가입 시에는 카드가 등록되어 있지 않은 상태이므로 0
         userRepository.save(user);
-        // if문 여기까지
-        // 이메일 확인이 잘못되는 등 잘못된 것이 있으면 여기에 else로 처리
-        // 그리고 뭐 하나라도 입력 안했을 때도 처리해야 됨!!!!
-
         return user;
     }
 
@@ -72,9 +67,11 @@ public class UserService {
                 user.get().setCardStatus(card.isPresent()? 1 : 0);
                 userRepository.save(user.get()); // 상태 업데이트 후 저장
                 if(account.isPresent() && card.isPresent()){ // 계좌와 카드 등록을 이미 했을 경우
-                    return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus(), account.get().getAccountEmbedded().getBankAccountNum());
+                    return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus(),
+                            account.get().getAccountEmbedded().getBankAccountNum());
                 } else { // 계좌와 카드 등록이 안되어 있을 경우
-                    return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus(), null);
+                    return new LoginResponseDTO(1, userId, user.get().getNickname(), user.get().getAccountStatus(), user.get().getCardStatus(),
+                            null);
                 }
             } else { // 비밀번호가 틀렸을 경우
                 return new LoginResponseDTO(0, null, null, 0, 0, null);

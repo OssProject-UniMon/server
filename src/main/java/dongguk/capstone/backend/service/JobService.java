@@ -34,9 +34,7 @@ public class JobService {
     private final ScheduleRepository scheduleRepository;
     private final JobRepository jobRepository;
 
-//        private static final String PARTTIME_SCRAPE_FLASK_SERVER_URL = "http://127.0.0.1:5000/scrape_partTime";
     private static final String PARTTIME_SCRAPE_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_partTime";
-//    private static final String PARTTIME_FLASK_SERVER_URL = "http://127.0.0.1:5000/part_time";
     private static final String PARTTIME_FLASK_SERVER_URL = "http://13.124.16.179:5000/part_time";
 
     private static final List<Integer> DAWN_LIST = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -202,7 +200,6 @@ public class JobService {
                 log.error("Error serializing common times", e);
             }
 
-            // 여기서 기존에 userId가 있는 job이 있으면 제거하고 다시 생성하는 것으로 변경!!!!!!!!!!!
             Optional<Job> existingJob = jobRepository.findJobByUserId(user.getUserId());
             existingJob.ifPresent(jobRepository::delete);
 
@@ -230,12 +227,14 @@ public class JobService {
         return true;
     }
 
-    public static String getPartTimeFlaskServerUrl(String requestMessage, String userDistrict, int withdrawSum, List<String> commonTimeWeekday, List<String> commonTimeWeekend) {
+    public static String getPartTimeFlaskServerUrl(String requestMessage, String userDistrict, int withdrawSum, List<String> commonTimeWeekday,
+                                                   List<String> commonTimeWeekend) {
         HttpClient client = HttpClient.newHttpClient();
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            String partTimeDetails = "사용자가 거주하는 서울특별시 내의 구 : " + userDistrict + " 사용자의 가계부의 출금 데이터의 합 : " + withdrawSum + " 사용자의 평일 아르바이트 근무 가능 시간대 : " + commonTimeWeekday + " 사용자의 주말 아르바이트 근무 가능 시간대 : " + commonTimeWeekend;
+            String partTimeDetails = "사용자가 거주하는 서울특별시 내의 구 : " + userDistrict + " 사용자의 가계부의 출금 데이터의 합 : " + withdrawSum +
+                    " 사용자의 평일 아르바이트 근무 가능 시간대 : " + commonTimeWeekday + " 사용자의 주말 아르바이트 근무 가능 시간대 : " + commonTimeWeekend;
             log.info("partTimeDetails : {}", partTimeDetails);
 
             String requestMessageDetails = "사용자의 알바 추천 요청 메시지 : " + requestMessage;
