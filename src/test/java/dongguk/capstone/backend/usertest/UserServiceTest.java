@@ -1,8 +1,8 @@
 package dongguk.capstone.backend.usertest;
 
-import dongguk.capstone.backend.userdto.SignupRequestDTO;
-import dongguk.capstone.backend.repository.UserRepository;
-import dongguk.capstone.backend.service.UserService;
+import dongguk.capstone.backend.user.dto.request.SignupReqDTO;
+import dongguk.capstone.backend.user.repository.UserRepository;
+import dongguk.capstone.backend.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,11 +20,11 @@ public class UserServiceTest {
     @Test
     void signup(){
         // given
-        SignupRequestDTO signupRequestDTO = new SignupRequestDTO();
-        signupRequestDTO.setEmail("mmm");
+        SignupReqDTO signupReqDTO = new SignupReqDTO();
+        signupReqDTO.setEmail("mmm");
 
         // when
-        userService.save(signupRequestDTO);
+        userService.save(signupReqDTO);
         Boolean b = userRepository.findByEmail("mmm@naver.com").isPresent();
 
         // then

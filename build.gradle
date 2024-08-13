@@ -23,25 +23,46 @@ repositories {
 }
 
 dependencies {
+	// JPA
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// SpringWeb
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'junit:junit:4.13.1'
+
 	implementation 'com.github.vladimir-bukhtoyarov:bucket4j-core:7.3.0'
 	implementation 'com.sun.xml.ws:jaxws-rt:2.3.1'
 	implementation 'org.json:json:20240303'
 	implementation 'org.glassfish.jaxb:txw2:4.0.0'
 	implementation 'org.glassfish.ha:ha-api:3.1.13'
 	implementation 'org.glassfish.metro:webservices-rt:2.4.4'
+
+	// barobill
 	implementation files('barobill/barobill-api-sdk-java17.jar')
+
+	// jsoup
 	implementation 'org.jsoup:jsoup:1.15.3'
+
+	// Lombok
 	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'junit:junit:4.12'
+
+	// Swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+	implementation 'javax.servlet:javax.servlet-api:4.0.1'
+
+	// mapper
+	implementation 'org.modelmapper:modelmapper:2.4.4'
 }
 
 tasks.named('test') {

@@ -1,6 +1,6 @@
 package dongguk.capstone.backend.advice;
 
-import dongguk.capstone.backend.userdto.SignupResponseDTO;
+import dongguk.capstone.backend.user.dto.response.SignupResDTO;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class BackendAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public SignupResponseDTO methodArgumentNotValidException(MethodArgumentNotValidException e){
-        return new SignupResponseDTO(0); // 필수적으로 입력해야 할 칸에 입력하지 않았을 경우 serverCode == 0 (임시적으로)
+    public SignupResDTO methodArgumentNotValidException(MethodArgumentNotValidException e){
+        return new SignupResDTO(0); // 필수적으로 입력해야 할 칸에 입력하지 않았을 경우 serverCode == 0 (임시적으로)
     }
 
 }
