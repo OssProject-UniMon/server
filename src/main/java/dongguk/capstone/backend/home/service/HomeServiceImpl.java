@@ -1,5 +1,8 @@
 package dongguk.capstone.backend.home.service;
 
+import dongguk.capstone.backend.log.entity.Log;
+import dongguk.capstone.backend.log.repository.LogRepository;
+import dongguk.capstone.backend.report.service.ReportService;
 import dongguk.capstone.backend.schedule.entity.Schedule;
 import dongguk.capstone.backend.user.entity.User;
 import dongguk.capstone.backend.schedule.repository.ScheduleRepository;
@@ -11,24 +14,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class HomeServiceImpl implements HomeService {
-    private final ScheduleRepository scheduleRepository;
+    private final ReportService reportService;
     private final UserRepository userRepository;
+    private final ScheduleRepository scheduleRepository;
 
     @Override
     @Transactional(readOnly = true)
     public HomeResDTO home(Long userId) {
-        HomeResDTO homeResDTO = new HomeResDTO();
-        List<ScheduleListDTO> list = new ArrayList<>();
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isPresent()) {
+        try {
+            List<ScheduleListDTO> list = new ArrayList<>();
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당하는 유저가 없습니다."));
+
+            // 사용자의 스케쥴
             List<Schedule> schedules = scheduleRepository.findSchedulesByUserId(userId);
             for (Schedule schedule : schedules) {
                 ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
@@ -38,9 +45,15 @@ public class HomeServiceImpl implements HomeService {
                 scheduleListDTO.setDay(schedule.getDay());
                 list.add(scheduleListDTO);
             }
+
+            return HomeResDTO.builder()
+                    .scheduleList(list)
+                    .consumption(user.getDailyConsumption()) // 지금까지의 소비량
+                    .build();
+        } catch (Exception e) {
+            log.error("[HomeService] home error : ", e);
+            throw new RuntimeException(e);
         }
-        homeResDTO.setScheduleList(list);
-        return homeResDTO;
     }
 }
 

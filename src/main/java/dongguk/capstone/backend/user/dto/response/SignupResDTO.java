@@ -1,12 +1,10 @@
 package dongguk.capstone.backend.user.dto.response;
 
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @RequiredArgsConstructor
 public class SignupResDTO {  // 여기에 일단 User API에 응답으로 보내줄 필드를 전부 설정하자
 

@@ -1,8 +1,9 @@
-package dongguk.capstone.backend.serializable;
+package dongguk.capstone.backend.log.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,12 +11,13 @@ import java.io.Serializable;
 
 @Embeddable
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CardEmbedded implements Serializable {
-    @Column(name = "user_id")
-    private Long userId;
+public class LogEmbedded implements Serializable {
+    @Column(name="log_id")
+    private Long logId;
 
-    @Column(name = "card_num")
-    private String cardNum;
+    @Column(name="user_id")
+    private Long userId;
 }

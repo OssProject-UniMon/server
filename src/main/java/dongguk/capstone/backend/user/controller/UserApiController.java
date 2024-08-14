@@ -5,7 +5,7 @@ import dongguk.capstone.backend.user.dto.response.LoginResDTO;
 import dongguk.capstone.backend.user.dto.request.SignupReqDTO;
 import dongguk.capstone.backend.user.dto.response.SignupResDTO;
 import dongguk.capstone.backend.user.repository.UserRepository;
-import dongguk.capstone.backend.user.service.UserService;
+import dongguk.capstone.backend.user.service.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j // 로그 사용 가능
 public class UserApiController {
 
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
     private final UserRepository userRepository; // 현재 스프링 데이터 JPA
 
     // ★ 정상인 경우와 비정상인 경우 모두 JSON 응답을 전송하는 방법은 ResponseEntity를 사용하는 것이다. ★
@@ -51,7 +51,7 @@ public class UserApiController {
     })
     public SignupResDTO signup(@Valid @RequestBody SignupReqDTO signupReqDTO){  // HTTP를 활용한 JSON 형식의 request를 받으려면, @RequestBody가 필요하다!!!
         // User user = userService.save(signupRequestDTO);
-        userService.save(signupReqDTO);
+        userServiceImpl.save(signupReqDTO);
         // 이게 된다면, BackendAdvice에도 ResponseEntity 적용하자
         return new SignupResDTO(1);
     }
@@ -79,7 +79,7 @@ public class UserApiController {
             // @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<LoginResDTO> login(@RequestBody LoginReqDTO loginReqDTO) {
-        LoginResDTO loginResDTO = userService.login(loginReqDTO);
+        LoginResDTO loginResDTO = userServiceImpl.login(loginReqDTO);
         if (loginResDTO.getServerCode() == 1) {
             return ResponseEntity.ok(loginResDTO);
         } else {

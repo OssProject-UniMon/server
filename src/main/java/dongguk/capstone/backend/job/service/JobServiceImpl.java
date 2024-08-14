@@ -184,34 +184,42 @@ public class JobServiceImpl implements JobService{
             }
             String withdrawSumResult = String.valueOf(withdrawSum);
 
-            Job job = new Job();
+            // Job ID 설정
             Long jobId = jobRepository.findJobIdByUserId(user.getUserId());
             if (jobId == null) {
                 jobId = 1L; // 최대 logId가 없으면 1로 초기화
             } else {
                 jobId++; // 최대 logId가 있으면 1 증가
             }
-            job.setJobId(jobId);
-            job.setUserId(user.getUserId());
-            job.setDistrict(userDistrict);
-            job.setWithdrawSum(withdrawSumResult);
 
             ObjectMapper mapper = new ObjectMapper();
             try {
                 String commonTimeWeekdayStr = mapper.writeValueAsString(commonTimeWeekday);
                 String commonTimeWeekendStr = mapper.writeValueAsString(commonTimeWeekend);
-                job.setCommonTimeWeekday(commonTimeWeekdayStr);
-                job.setCommonTimeWeekend(commonTimeWeekendStr);
+
+                // 빌더를 사용하여 Job 객체 생성
+                Job job = Job.builder()
+                        .jobId(jobId)
+                        .userId(user.getUserId())
+                        .district(userDistrict)
+                        .withdrawSum(withdrawSumResult)
+                        .commonTimeWeekday(commonTimeWeekdayStr)
+                        .commonTimeWeekend(commonTimeWeekendStr)
+                        .build();
+
+                // 기존 Job 객체 삭제
+                Optional<Job> existingJob = jobRepository.findJobByUserId(user.getUserId());
+                existingJob.ifPresent(jobRepository::delete);
+
+                // 새로운 Job 객체 저장
+                jobRepository.save(job);
+
             } catch (Exception e) {
                 log.error("Error serializing common times", e);
             }
-
-            Optional<Job> existingJob = jobRepository.findJobByUserId(user.getUserId());
-            existingJob.ifPresent(jobRepository::delete);
-
-            jobRepository.save(job);
         }
     }
+
 
     private boolean isWeekDayCommonTime(List<Integer> timeList) {
         for (int i = 0; i < 5; i++) {

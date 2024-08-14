@@ -22,17 +22,21 @@ public class ScheduleServiceImpl implements ScheduleService{
     @Override
     @Transactional
     public int plus(Long userId, ScheduleReqPlusDTO scheduleReqPlusDTO) {
-        Schedule schedule = new Schedule();
         Optional<User> userOptional = userRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            schedule.setUserId(userId);
-            schedule.setTitle(scheduleReqPlusDTO.getTitle());
-            schedule.setStartTime(scheduleReqPlusDTO.getStartTime());
-            schedule.setEndTime(scheduleReqPlusDTO.getEndTime());
-            schedule.setDay(scheduleReqPlusDTO.getDay());
-            scheduleRepository.save(schedule);
-            return 1;
+
+        if (userOptional.isEmpty()) {
+            return 0;
         }
-        return 0;
+
+        Schedule schedule = Schedule.builder()
+                .userId(userId)
+                .title(scheduleReqPlusDTO.getTitle())
+                .startTime(scheduleReqPlusDTO.getStartTime())
+                .endTime(scheduleReqPlusDTO.getEndTime())
+                .day(scheduleReqPlusDTO.getDay())
+                .build();
+
+        scheduleRepository.save(schedule);
+        return 1;
     }
 }

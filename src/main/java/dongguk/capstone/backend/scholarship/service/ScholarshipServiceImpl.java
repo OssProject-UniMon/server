@@ -85,13 +85,13 @@ public class ScholarshipServiceImpl implements ScholarshipService{
     }
 
     private Scholarship createScholarshipFromNode(JsonNode node) {
-        Scholarship scholarship = new Scholarship();
-        scholarship.setName(node.get("name").asText());
-        scholarship.setAmount(node.get("amount").asText());
-        scholarship.setTarget(node.get("target").asText());
-        scholarship.setDue(node.get("due").asText());
-        scholarship.setUrl(node.get("url").asText());
-        return scholarship;
+        return Scholarship.builder()
+                .name(node.get("name").asText())
+                .amount(node.get("amount").asText())
+                .target(node.get("target").asText())
+                .due(node.get("due").asText())
+                .url(node.get("url").asText())
+                .build();
     }
 
     @Override

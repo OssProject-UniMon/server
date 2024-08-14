@@ -8,6 +8,7 @@ import lombok.*;
 //@Setter
 //@ToString
 @Data  // @Data 어노테이션 사용하면 위에 어노테이션 전부 포함되어 있어서 생략 가능
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class SignupReqDTO {  // 회원 가입의 request DTO

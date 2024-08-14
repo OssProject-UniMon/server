@@ -20,7 +20,7 @@ import java.time.Duration;
 @Configuration
 public class GptConfig {
 
-    @Value("${gpt.api.key}")
+    @Value("${openai.api.key}")
     private String apiKey;
 
     @Bean(name = "gptWebClient")

@@ -5,7 +5,8 @@ import com.baroservice.api.BarobillApiService;
 import dongguk.capstone.backend.card.dto.request.CardReqRegistDTO;
 import dongguk.capstone.backend.card.entity.Card;
 import dongguk.capstone.backend.card.repository.CardRepository;
-import dongguk.capstone.backend.serializable.CardEmbedded;
+import dongguk.capstone.backend.card.entity.CardEmbedded;
+import dongguk.capstone.backend.user.entity.User;
 import dongguk.capstone.backend.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,22 +37,26 @@ public class CardServiceImpl implements CardService{
     @Override
     @Transactional
     public int cardRegist(Long userId, CardReqRegistDTO cardReqRegistDTO) {
-        Card card = new Card();
-        CardEmbedded cardEmbedded = new CardEmbedded();
-        if (userRepository.findById(userId).isPresent()){
-            card.setUser(userRepository.findById(userId).get());
-            cardEmbedded.setUserId(userId);
-            cardEmbedded.setCardNum(cardReqRegistDTO.getCardNum());
-            card.setCardEmbedded(cardEmbedded);
-            card.setCardCompany(cardReqRegistDTO.getCardCompany());
-            card.setCardType(cardReqRegistDTO.getCardType());
-            card.setWebId(cardReqRegistDTO.getWebId());
-            card.setWebPwd(cardReqRegistDTO.getWebPwd());
-            cardRepository.save(card);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당하는 유저가 없습니다."));
 
-            return barobillApiService.card.registCard("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", card.getCardCompany(), card.getCardType(),
-                    cardEmbedded.getCardNum(), card.getWebId(), card.getWebPwd(), "", "");
-        }
-        return 0;
+        CardEmbedded cardEmbedded = CardEmbedded.builder()
+                .userId(userId)
+                .cardNum(cardReqRegistDTO.getCardNum())
+                .build();
+
+        Card card = Card.builder()
+                .user(user)
+                .cardEmbedded(cardEmbedded)
+                .cardCompany(cardReqRegistDTO.getCardCompany())
+                .cardType(cardReqRegistDTO.getCardType())
+                .webId(cardReqRegistDTO.getWebId())
+                .webPwd(cardReqRegistDTO.getWebPwd())
+                .build();
+
+        cardRepository.save(card);
+
+        return barobillApiService.card.registCard("181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", card.getCardCompany(), card.getCardType(),
+                cardEmbedded.getCardNum(), card.getWebId(), card.getWebPwd(), "", "");
     }
 }

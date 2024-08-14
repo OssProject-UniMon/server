@@ -1,7 +1,7 @@
 package dongguk.capstone.backend.log.repository;
 
 import dongguk.capstone.backend.log.entity.Log;
-import dongguk.capstone.backend.serializable.LogEmbedded;
+import dongguk.capstone.backend.log.entity.LogEmbedded;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +16,9 @@ public interface LogRepository extends JpaRepository<Log, LogEmbedded> {
 
     @Query("SELECT l FROM Log l WHERE l.logEmbedded.userId = :userId")
     List<Log> findLogsByUserId(@Param("userId") Long userId);
+
+    @Query("select l from Log l where l.logEmbedded.userId = :userId and substring(l.date,1,6) = :currentMonth")
+    List<Log> findLogsByUserIdAndMonth(@Param("userId") Long userId, @Param("currentMonth") String currentMonth);
 
     void deleteByLogEmbeddedUserId(Long userId);
 }

@@ -14,4 +14,5 @@ import java.util.List;
 @NoArgsConstructor
 public class HomeResDTO {
     private List<ScheduleListDTO> scheduleList;
+    private Long consumption;
 }

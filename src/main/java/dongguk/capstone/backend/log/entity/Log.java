@@ -1,10 +1,8 @@
 package dongguk.capstone.backend.log.entity;
 
-import dongguk.capstone.backend.serializable.LogEmbedded;
 import dongguk.capstone.backend.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 거래 내역을 저장하는 엔티티 (API 계속해서 호출하는 문제를 막기 위해)
@@ -14,7 +12,9 @@ import lombok.Setter;
  */
 @Entity
 @Getter
-@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name="log")
 public class Log {
     @EmbeddedId

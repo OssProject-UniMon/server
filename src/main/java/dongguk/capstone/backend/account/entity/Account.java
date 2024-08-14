@@ -1,14 +1,14 @@
 package dongguk.capstone.backend.account.entity;
 
-import dongguk.capstone.backend.serializable.AccountEmbedded;
 import dongguk.capstone.backend.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
-@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "account")
 public class Account {
     @EmbeddedId

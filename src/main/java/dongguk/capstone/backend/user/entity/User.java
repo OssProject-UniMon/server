@@ -3,8 +3,7 @@ package dongguk.capstone.backend.user.entity;
 import dongguk.capstone.backend.account.entity.Account;
 import dongguk.capstone.backend.card.entity.Card;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +11,9 @@ import java.util.List;
 @Entity // 도메인 객체인 User에 JPA 엔티티 매핑을 하기 위해 @Entity 애노테이션 필요
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user") // 현재 MySQL의 table 이름이 user이므로 name을 설정해줘야 함
 public class User {
     @Id // @Id 애노테이션이 붙은 바로 밑 필드가 pk가 되는 것
@@ -57,10 +59,12 @@ public class User {
     @Column(name = "card_status")
     private int cardStatus;
 
+    @Column(name = "now_total_consumption")
+    private Long nowTotalConsumption;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Account> accounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Card> cards = new ArrayList<>();
-
 }

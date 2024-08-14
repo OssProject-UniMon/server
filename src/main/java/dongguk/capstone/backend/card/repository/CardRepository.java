@@ -1,7 +1,7 @@
 package dongguk.capstone.backend.card.repository;
 
 import dongguk.capstone.backend.card.entity.Card;
-import dongguk.capstone.backend.serializable.CardEmbedded;
+import dongguk.capstone.backend.card.entity.CardEmbedded;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

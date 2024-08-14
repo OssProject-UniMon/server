@@ -1,11 +1,9 @@
 package dongguk.capstone.backend.user.dto.response;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
+@Builder
 @RequiredArgsConstructor
 public class LoginResDTO {
     private final int serverCode;

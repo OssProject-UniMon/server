@@ -1,12 +1,13 @@
 package dongguk.capstone.backend.job.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
-@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "job")
 public class Job {
     @Id
@@ -23,8 +24,8 @@ public class Job {
     private String withdrawSum;
 
     @Column(name = "common_time_weekday")
-    private String CommonTimeWeekday;
+    private String commonTimeWeekday;
 
     @Column(name = "common_time_weekend")
-    private String CommonTimeWeekend;
+    private String commonTimeWeekend;
 }

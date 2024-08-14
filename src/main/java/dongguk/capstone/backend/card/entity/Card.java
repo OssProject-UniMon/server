@@ -1,14 +1,14 @@
 package dongguk.capstone.backend.card.entity;
 
-import dongguk.capstone.backend.serializable.CardEmbedded;
 import dongguk.capstone.backend.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
-@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "card")
 public class Card {
     @EmbeddedId // 복합키 하는 방법

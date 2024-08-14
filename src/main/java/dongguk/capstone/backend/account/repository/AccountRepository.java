@@ -1,7 +1,7 @@
 package dongguk.capstone.backend.account.repository;
 
 import dongguk.capstone.backend.account.entity.Account;
-import dongguk.capstone.backend.serializable.AccountEmbedded;
+import dongguk.capstone.backend.account.entity.AccountEmbedded;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
