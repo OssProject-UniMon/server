@@ -11,7 +11,6 @@ java {
 	sourceCompatibility = '17'
 }
 
-
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -67,4 +66,13 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+jar {
+	enabled = true
+	archiveFileName = 'server.jar'
+}
+
+tasks.named('bootJar') {
+	archiveFileName = 'server.jar'
 }
