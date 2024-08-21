@@ -21,4 +21,10 @@ public interface LogRepository extends JpaRepository<Log, LogEmbedded> {
     List<Log> findLogsByUserIdAndMonth(@Param("userId") Long userId, @Param("currentMonth") String currentMonth);
 
     void deleteByLogEmbeddedUserId(Long userId);
+
+    @Query("select l from Log l where l.logEmbedded.userId = :userId and substring(l.date,1,8) = :previousDayString")
+    List<Log> findLogsByUserIdAndDay(@Param("userId") Long userId, @Param("previousDayString") String previousDayString);
+
+    @Query("SELECT MAX(l.date) FROM Log l WHERE l.logEmbedded.userId = :userId")
+    String findLastSavedDateByUserId(@Param("userId") Long userId);
 }

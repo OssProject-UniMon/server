@@ -71,4 +71,7 @@ public class MonthlyAggregation {
 
     @Column(name = "monthly_total_mobile_consumption")
     private Long monthlyTotalMobileConsumption;
+
+    @Column(name = "monthly_total_others_consumption")
+    private Long monthlyTotalOthersConsumption;
 }

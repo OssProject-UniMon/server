@@ -19,6 +19,12 @@ public class CategoryConsumption {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "date")
+    private String date;
+
+    @Column(name = "is_last_category_consumption")
+    private Boolean isLastCategoryConsumption;
+
     @Column(name = "entertainment_consumption")
     private Long entertainmentConsumption;
 
@@ -65,5 +71,5 @@ public class CategoryConsumption {
     private Long mobileConsumption;
 
     @Column(name = "others_consumption")
-    private Long OthersConsumption;
+    private Long othersConsumption;
 }

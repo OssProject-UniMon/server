@@ -15,14 +15,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
-import java.time.Duration;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
+//@RequiredArgsConstructor
 @Slf4j
 public class GptServiceImpl implements GptService{
     private final WebClient gptWebClient;
@@ -35,7 +37,9 @@ public class GptServiceImpl implements GptService{
     @Value("${openai.api.url}")
     private String apiUrl;
 
-    public GptServiceImpl(@Qualifier("gptWebClient") WebClient gptWebClient, UserRepository userRepository, MonthlyAggregationRepository monthlyAggregationRepository) {
+    public GptServiceImpl(@Qualifier("gptWebClient") WebClient gptWebClient,
+                          UserRepository userRepository,
+                          MonthlyAggregationRepository monthlyAggregationRepository) {
         this.gptWebClient = gptWebClient;
         this.userRepository = userRepository;
         this.monthlyAggregationRepository = monthlyAggregationRepository;
@@ -47,8 +51,12 @@ public class GptServiceImpl implements GptService{
     public void gptBudget(){
         List<User> userList = userRepository.findAll();
         for(User user : userList){
-            MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserId(user.getUserId())
+            LocalDate lastMonth = LocalDate.now().minusMonths(1);
+            String stringLastMonth = lastMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
+
+            MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(user.getUserId(), stringLastMonth)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 월별 집계가 없습니다."));
+
             GPTRequestDTO gptRequestDTO = getGptRequestDTO(monthlyAggregation);
 
             Mono<String> gptResponse = gptWebClient.post()
@@ -74,8 +82,8 @@ public class GptServiceImpl implements GptService{
                     }
                 }
 
-                // 파싱한 예산을 필요에 따라 처리 (예: 데이터베이스에 저장)
-                // 예시: budgetMap.forEach((category, budget) -> System.out.println(category + ": " + budget));
+                // gptResponse로부터 총예산과 카테고리별 예산을 파싱한 뒤에
+                // Report에 넣어서  build 하고 repository에 save하기
             });
         }
     }
@@ -98,8 +106,40 @@ public class GptServiceImpl implements GptService{
                 + "교육비 카테고리는 " + monthlyAggregation.getMonthlyTotalEduConsumption() + "원, "
                 + "모바일페이 카테고리는 " + monthlyAggregation.getMonthlyTotalMobileConsumption() + "원 입니다. "
                 + "이 때, 이번 달의 총 예산과 각 카테고리에 대한 예산을 정하려고 하는데 "
-                + "다른 설명 하지 말고 딱 적절한 총 예산과 각 카테고리에 대한 적절한 예산만 추천해주세요";
+                + "다른 설명 하지 말고 딱 적절한 총 예산과 각 카테고리에 대한 적절한 예산만 추천해줘";
 
         return new GPTRequestDTO(model, prompt);
+    }
+
+    public Mono<String> gptAdvice(Long nowTotalConsumption, double consumptionPercent, BigDecimal consumptionChangePercentage){
+        // 소비 변화 비율에 따라 프롬프트를 다르게 설정
+        String changeDescription;
+        if (consumptionChangePercentage.compareTo(BigDecimal.ZERO) > 0) {
+            // 증가한 경우
+            changeDescription = "저번 달의 동일한 날짜의 소비량에 비해 이번 달의 현재까지 쓴 소비량이 "
+                    + consumptionChangePercentage + "% 증가했습니다.";
+        } else if (consumptionChangePercentage.compareTo(BigDecimal.ZERO) < 0) {
+            // 감소한 경우
+            changeDescription = "저번 달의 동일한 날짜의 소비량에 비해 이번 달의 현재까지 쓴 소비량이 "
+                    + consumptionChangePercentage.abs() + "% 감소했습니다.";
+        } else {
+            // 변화가 없는 경우
+            changeDescription = "저번 달의 동일한 날짜의 소비량과 비교했을 때 이번 달의 현재까지 쓴 소비량이 변동이 없습니다.";
+        }
+
+        String prompt = "이번 달의 현재까지 쓴 소비량은 " + nowTotalConsumption + "원이고, "
+                + "총 소비량에 대한 예산에 비해 이번 달의 현재까지 쓴 소비량은 " + consumptionPercent + "%입니다. "
+                + changeDescription + " "
+                + "위 정보를 바탕으로, 예산 관리에 대한 적절한 조언을 제공해 주세요. "
+                + "예산을 초과하거나 부족한 경우, 어떻게 조정할 수 있는지 구체적인 제안을 부탁드립니다.";
+
+        GPTRequestDTO gptRequestDTO = new GPTRequestDTO(model, prompt);
+
+        return gptWebClient.post()
+                .uri(apiUrl)
+                .bodyValue(gptRequestDTO)
+                .retrieve()
+                .bodyToMono(GPTResponseDTO.class)
+                .map(response -> response.getChoices().get(0).getMessage().getContent().trim());
     }
 }

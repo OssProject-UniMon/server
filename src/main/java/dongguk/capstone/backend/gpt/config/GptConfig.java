@@ -1,4 +1,4 @@
-package dongguk.capstone.global.common.config;
+package dongguk.capstone.backend.gpt.config;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
