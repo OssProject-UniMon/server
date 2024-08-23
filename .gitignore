@@ -39,4 +39,4 @@ out/
 .vscode/
 
 ### test ###
-test/
+/src/test/
