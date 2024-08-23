@@ -41,11 +41,11 @@ public class BarobillCardTests {
     public void registCard() {
         String certKey = "3C2AF900-24FC-4DAF-8169-58E8B7F4AD03";
         String corpNum = "2018204468";
-        String cardCompany = "BC";
+        String cardCompany = "SHINHAN";
         String cardType = "P";
-        String cardNum = "9446038007099032";
+        String cardNum = "4890230019175114";
         String webId = "woalsdl7399";
-        String webPwd = "driermine4625!";
+        String webPwd = "driermine7399!";
         String alias = "";
         String usage = "";
 

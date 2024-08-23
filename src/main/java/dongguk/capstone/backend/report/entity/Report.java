@@ -75,4 +75,7 @@ public class Report {
 
     @Column(name = "mobile_budget")
     private Long mobileBudget;
+
+    @Column(name = "others_budget")
+    private Long othersBudget;
 }

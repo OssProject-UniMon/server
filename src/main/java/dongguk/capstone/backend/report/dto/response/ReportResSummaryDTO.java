@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Map;
 
 @Data
 @Builder
@@ -20,7 +19,7 @@ public class ReportResSummaryDTO {
     private double percentageOfBudget;
 
     @Schema(description = "저번 달의 소비량이 있는지 여부")
-    private boolean isLastConsumption;
+    private boolean lastConsumption;
 
     @Schema(description = "저번 달(요청 Month - 1)의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %")
     private BigDecimal percentageChange;
@@ -28,9 +27,15 @@ public class ReportResSummaryDTO {
     @Schema(description = "gpt 조언")
     private String gptAdvice;
 
-    @Schema(description = "요청 Month의 최고 소비 카테고리와 그 카테고리의 전 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %")
-    private Map<String, Double> highestCategory;
+    @Schema(description = "요청 Month의 최고 소비 카테고리")
+    private String highestCategory;
 
-    @Schema(description = "요청 Month의 최저 소비 카테고리와 그 카테고리의 전 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %")
-    private Map<String, Double> lowestCategory;
+    @Schema(description = "요청 Month의 최고 소비 카테고리의 전 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %")
+    private double highestCategoryPercent;
+
+    @Schema(description = "요청 Month의 최저 소비 카테고리")
+    private String lowestCategory;
+
+    @Schema(description = "요청 Month의 최저 소비 카테고리의 전 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %")
+    private double lowestCategoryPercent;
 }
