@@ -207,7 +207,7 @@ public class ReportServiceImpl implements ReportService {
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
                     .gptAdvice(gptAdvice)
                     .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent(highestCategoryPercentageChange) // null 체크 후 기본값 0 할당
+                    .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 0 할당
                     .lowestCategory(lowestCategory.getKey())
                     .lowestCategoryPercent(lowestCategoryPercentageChange) // null 체크 후 기본값 0 할당
                     .build();
@@ -280,6 +280,10 @@ public class ReportServiceImpl implements ReportService {
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
             Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
             Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+
+            // null 값 체크 후 기본값 0 할당
+            highestCategoryPercentageChange = (highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 0;
+            lowestCategoryPercentageChange = (lowestCategoryPercentageChange != null) ? lowestCategoryPercentageChange : 0;
 
             String gptAdvice = null;
             if (dailyConsumption.getIsLastConsumption()) {
