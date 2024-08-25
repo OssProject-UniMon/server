@@ -207,9 +207,9 @@ public class ReportServiceImpl implements ReportService {
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
                     .gptAdvice(gptAdvice)
                     .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 0 할당
+                    .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
                     .lowestCategory(lowestCategory.getKey())
-                    .lowestCategoryPercent(lowestCategoryPercentageChange) // null 체크 후 기본값 0 할당
+                    .lowestCategoryPercent((lowestCategoryPercentageChange != null) ? lowestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
                     .build();
 
         } catch (Exception e) {
@@ -281,9 +281,6 @@ public class ReportServiceImpl implements ReportService {
             Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
             Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
 
-            // null 값 체크 후 기본값 0 할당
-            highestCategoryPercentageChange = (highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 0;
-            lowestCategoryPercentageChange = (lowestCategoryPercentageChange != null) ? lowestCategoryPercentageChange : 0;
 
             String gptAdvice = null;
             if (dailyConsumption.getIsLastConsumption()) {
@@ -297,9 +294,9 @@ public class ReportServiceImpl implements ReportService {
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
                     .gptAdvice(gptAdvice)
                     .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent(highestCategoryPercentageChange) // 기본값 0 할당
+                    .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
                     .lowestCategory(lowestCategory.getKey())
-                    .lowestCategoryPercent(lowestCategoryPercentageChange) // 기본값 0 할당
+                    .lowestCategoryPercent((lowestCategoryPercentageChange != null) ? lowestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
                     .build();
         } catch (Exception e) {
             log.error("[ReportService] pastSummaryPage error : ", e);
@@ -307,7 +304,251 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+    private Integer calculatePercentageChange(Long currentAmount, Long lastMonthAmount) {
+        if (lastMonthAmount == null || lastMonthAmount == 0) {
+            return currentAmount == null ? 0 : 100; // 0% 또는 100%로 반환
+        }
+        long difference = (currentAmount != null ? currentAmount : 0) - lastMonthAmount;
+        return (int) Math.round((double) difference / lastMonthAmount * 100);
+    }
 
+
+
+    /*-------------------------------- 상세 페이지 -----------------------------------*/
+
+    @Override
+    @Transactional
+    public ReportResDetailDTO reportDetailPage(Long userId, String date){
+        // 상세 페이지에서도 요약 페이지와 비슷하게 진행
+        LocalDate currentMonth = LocalDate.now();
+        String stringCurrentMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String dateMonth = date.substring(0, 6); // date에서 yyyyMM 부분만 추출
+
+        if (stringCurrentMonth.equals(dateMonth)) {
+            return nowDetailPage(userId, date);
+        } else {
+            return pastDetailPage(userId, date);
+        }
+    }
+
+    @Transactional
+    public ReportResDetailDTO nowDetailPage(Long userId, String date) {
+        try {
+            log.info("date : " + date);
+            // 현재 달의 모든 소비량 데이터 조회
+            List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date.substring(0, 6));
+
+            // 현재 달의 각 카테고리별 총 소비량 계산
+            Map<String, Long> nowCategoryTotals = new HashMap<>();
+            for (CategoryConsumption consumption : currentMonthConsumptions) {
+                nowCategoryTotals.merge("오락", consumption.getEntertainmentConsumption(), Long::sum);
+                nowCategoryTotals.merge("문화", consumption.getCultureConsumption(), Long::sum);
+                nowCategoryTotals.merge("카페", consumption.getCafeConsumption(), Long::sum);
+                nowCategoryTotals.merge("스포츠", consumption.getSportsConsumption(), Long::sum);
+                nowCategoryTotals.merge("음식점", consumption.getFoodConsumption(), Long::sum);
+                nowCategoryTotals.merge("숙박비", consumption.getAccommodationConsumption(), Long::sum);
+                nowCategoryTotals.merge("잡화소매", consumption.getRetailConsumption(), Long::sum);
+                nowCategoryTotals.merge("쇼핑", consumption.getShoppingConsumption(), Long::sum);
+                nowCategoryTotals.merge("개인이체", consumption.getTransferConsumption(), Long::sum);
+                nowCategoryTotals.merge("교통비", consumption.getTransportationConsumption(), Long::sum);
+                nowCategoryTotals.merge("의료비", consumption.getMedicalConsumption(), Long::sum);
+                nowCategoryTotals.merge("보험비", consumption.getInsuranceConsumption(), Long::sum);
+                nowCategoryTotals.merge("구독/정기결제", consumption.getSubConsumption(), Long::sum);
+                nowCategoryTotals.merge("교육비", consumption.getEduConsumption(), Long::sum);
+                nowCategoryTotals.merge("모바일페이", consumption.getMobileConsumption(), Long::sum);
+                nowCategoryTotals.merge("기타", consumption.getOthersConsumption(), Long::sum);
+            }
+            log.info("nowCategoryTotals : " + nowCategoryTotals);
+
+            // 최고 소비량 카테고리 찾기
+            Map.Entry<String, Long> highestCategory = nowCategoryTotals.entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .orElseThrow(() -> new RuntimeException("No consumption data available"));
+            log.info("highestCategory : " + highestCategory);
+
+            // 최저 소비량 카테고리 찾기
+            Map.Entry<String, Long> lowestCategory = nowCategoryTotals.entrySet().stream()
+                    .min(Map.Entry.comparingByValue())
+                    .orElseThrow(() -> new RuntimeException("No consumption data available"));
+            log.info("lowestCategory : " + lowestCategory);
+
+            // 저번 달 같은 날짜 구하기
+            String lastMonthDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"))
+                    .minusMonths(1)
+                    .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            log.info("lastMonthDate : " + lastMonthDate);
+
+            // 저번 달 같은 날짜의 CategoryConsumption 조회
+            CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
+                    .orElse(null);
+
+            // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
+            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
+            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
+            log.info("lastMonthHighestCategoryAmount  : " + lastMonthHighestCategoryAmount);
+            log.info("lastMonthLowestCategoryAmount  : " + lastMonthLowestCategoryAmount);
+
+            // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
+            Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
+            Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            log.info("highestCategoryPercentageChange  : " + highestCategoryPercentageChange);
+            log.info("lowestCategoryPercentageChange  : " + lowestCategoryPercentageChange);
+
+            // 카테고리별 변동 % 계산
+            Map<String, Integer> categoryChangePercentMap = new HashMap<>();
+            for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
+                Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
+                Integer changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
+                categoryChangePercentMap.put(entry.getKey(), changePercent);
+            }
+            log.info("categoryChangePercentMap : " + categoryChangePercentMap);
+
+            // 카테고리 예산 조회를 위한 Report
+            Report report = reportRepository.findReportByUserIdAndDate(userId, date)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 날짜에 대한 예산 정보가 없습니다."));
+            log.info("report : " + report);
+
+            // 카테고리 예산 조회
+            Map<String, Integer> categoryBudgetMap = new HashMap<>();
+            categoryBudgetMap.put("오락", report.getEntertainmentBudget().intValue());
+            categoryBudgetMap.put("문화", report.getCultureBudget().intValue());
+            categoryBudgetMap.put("카페", report.getCafeBudget().intValue());
+            categoryBudgetMap.put("스포츠", report.getSportsBudget().intValue());
+            categoryBudgetMap.put("음식점", report.getFoodBudget().intValue());
+            categoryBudgetMap.put("숙박비", report.getAccommodationBudget().intValue());
+            categoryBudgetMap.put("잡화소매", report.getRetailBudget().intValue());
+            categoryBudgetMap.put("쇼핑", report.getShoppingBudget().intValue());
+            categoryBudgetMap.put("개인이체", report.getTransferBudget().intValue());
+            categoryBudgetMap.put("교통비", report.getTransportationBudget().intValue());
+            categoryBudgetMap.put("의료비", report.getMedicalBudget().intValue());
+            categoryBudgetMap.put("보험비", report.getInsuranceBudget().intValue());
+            categoryBudgetMap.put("구독/정기결제", report.getSubBudget().intValue());
+            categoryBudgetMap.put("교육비", report.getEduBudget().intValue());
+            categoryBudgetMap.put("모바일페이", report.getMobileBudget().intValue());
+            categoryBudgetMap.put("기타", report.getOthersBudget().intValue());
+            log.info("categoryBudgetMap : " + categoryBudgetMap);
+
+            // 카테고리 사용률 계산
+            Map<String, Integer> categoryUsePercentMap = new HashMap<>();
+            for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
+                Integer budget = categoryBudgetMap.get(entry.getKey());
+                if (budget == null || budget == 0) {
+                    budget = 1; // 제로 디비전 방지
+                }
+                int usePercent = (int)(entry.getValue() / (double) budget * 100);
+                categoryUsePercentMap.put(entry.getKey(), usePercent);
+            }
+            log.info("categoryUsePercentMap : " + categoryUsePercentMap);
+
+            // 각 카테고리 예산 및 사용 비율 로깅
+            log.info("Entertainment Budget: {}", categoryBudgetMap.get("오락"));
+            log.info("Entertainment Use Percent: {}", categoryUsePercentMap.get("오락"));
+
+            log.info("Culture Budget: {}", categoryBudgetMap.get("문화"));
+            log.info("Culture Use Percent: {}", categoryUsePercentMap.get("문화"));
+
+            log.info("Cafe Budget: {}", categoryBudgetMap.get("카페"));
+            log.info("Cafe Use Percent: {}", categoryUsePercentMap.get("카페"));
+
+            log.info("Sports Budget: {}", categoryBudgetMap.get("스포츠"));
+            log.info("Sports Use Percent: {}", categoryUsePercentMap.get("스포츠"));
+
+            log.info("Food Budget: {}", categoryBudgetMap.get("음식점"));
+            log.info("Food Use Percent: {}", categoryUsePercentMap.get("음식점"));
+
+            log.info("Accommodation Budget: {}", categoryBudgetMap.get("숙박비"));
+            log.info("Accommodation Use Percent: {}", categoryUsePercentMap.get("숙박비"));
+
+            log.info("Retail Budget: {}", categoryBudgetMap.get("잡화소매"));
+            log.info("Retail Use Percent: {}", categoryUsePercentMap.get("잡화소매"));
+
+            log.info("Shopping Budget: {}", categoryBudgetMap.get("쇼핑"));
+            log.info("Shopping Use Percent: {}", categoryUsePercentMap.get("쇼핑"));
+
+            log.info("Transfer Budget: {}", categoryBudgetMap.get("개인이체"));
+            log.info("Transfer Use Percent: {}", categoryUsePercentMap.get("개인이체"));
+
+            log.info("Transportation Budget: {}", categoryBudgetMap.get("교통비"));
+            log.info("Transportation Use Percent: {}", categoryUsePercentMap.get("교통비"));
+
+            log.info("Medical Budget: {}", categoryBudgetMap.get("의료비"));
+            log.info("Medical Use Percent: {}", categoryUsePercentMap.get("의료비"));
+
+            log.info("Insurance Budget: {}", categoryBudgetMap.get("보험비"));
+            log.info("Insurance Use Percent: {}", categoryUsePercentMap.get("보험비"));
+
+            log.info("Subscription Budget: {}", categoryBudgetMap.get("구독/정기결제"));
+            log.info("Subscription Use Percent: {}", categoryUsePercentMap.get("구독/정기결제"));
+
+            log.info("Education Budget: {}", categoryBudgetMap.get("교육비"));
+            log.info("Education Use Percent: {}", categoryUsePercentMap.get("교육비"));
+
+            log.info("Mobile Payment Budget: {}", categoryBudgetMap.get("모바일페이"));
+            log.info("Mobile Payment Use Percent: {}", categoryUsePercentMap.get("모바일페이"));
+
+            log.info("Others Budget: {}", categoryBudgetMap.get("기타"));
+            log.info("Others Use Percent: {}", categoryUsePercentMap.get("기타"));
+
+            // ReportResDetailDTO 생성 및 반환
+            return ReportResDetailDTO.builder()
+                    .highestCategory(highestCategory.getKey())
+                    .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
+                    .lowestCategory(lowestCategory.getKey())
+                    .lowestCategoryPercent((lowestCategoryPercentageChange != null) ? lowestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
+                    .entertainmentCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "오락"))
+                    .entertainmentCategoryBudget(categoryBudgetMap.get("오락"))
+                    .entertainmentCategoryUsePercent(categoryUsePercentMap.get("오락"))
+                    .cultureCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "문화"))
+                    .cultureCategoryBudget(categoryBudgetMap.get("문화"))
+                    .cultureCategoryUsePercent(categoryUsePercentMap.get("문화"))
+                    .cafeCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "카페"))
+                    .cafeCategoryBudget(categoryBudgetMap.get("카페"))
+                    .cafeCategoryUsePercent(categoryUsePercentMap.get("카페"))
+                    .sportsCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "스포츠"))
+                    .sportsCategoryBudget(categoryBudgetMap.get("스포츠"))
+                    .sportsCategoryUsePercent(categoryUsePercentMap.get("스포츠"))
+                    .foodCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "음식점"))
+                    .foodCategoryBudget(categoryBudgetMap.get("음식점"))
+                    .foodCategoryUsePercent(categoryUsePercentMap.get("음식점"))
+                    .accommodationCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "숙박비"))
+                    .accommodationCategoryBudget(categoryBudgetMap.get("숙박비"))
+                    .accommodationCategoryUsePercent(categoryUsePercentMap.get("숙박비"))
+                    .retailCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "잡화소매"))
+                    .retailCategoryBudget(categoryBudgetMap.get("잡화소매"))
+                    .retailCategoryUsePercent(categoryUsePercentMap.get("잡화소매"))
+                    .shoppingCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "쇼핑"))
+                    .shoppingCategoryBudget(categoryBudgetMap.get("쇼핑"))
+                    .shoppingCategoryUsePercent(categoryUsePercentMap.get("쇼핑"))
+                    .transferCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "개인이체"))
+                    .transferCategoryBudget(categoryBudgetMap.get("개인이체"))
+                    .transferCategoryUsePercent(categoryUsePercentMap.get("개인이체"))
+                    .transportationCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "교통비"))
+                    .transportationCategoryBudget(categoryBudgetMap.get("교통비"))
+                    .transportationCategoryUsePercent(categoryUsePercentMap.get("교통비"))
+                    .medicalCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "의료비"))
+                    .medicalCategoryBudget(categoryBudgetMap.get("의료비"))
+                    .medicalCategoryUsePercent(categoryUsePercentMap.get("의료비"))
+                    .insuranceCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "보험비"))
+                    .insuranceCategoryBudget(categoryBudgetMap.get("보험비"))
+                    .insuranceCategoryUsePercent(categoryUsePercentMap.get("보험비"))
+                    .subCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "구독/정기결제"))
+                    .subCategoryBudget(categoryBudgetMap.get("구독/정기결제"))
+                    .subCategoryUsePercent(categoryUsePercentMap.get("구독/정기결제"))
+                    .eduCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "교육비"))
+                    .eduCategoryBudget(categoryBudgetMap.get("교육비"))
+                    .eduCategoryUsePercent(categoryUsePercentMap.get("교육비"))
+                    .mobileCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "모바일페이"))
+                    .mobileCategoryBudget(categoryBudgetMap.get("모바일페이"))
+                    .mobileCategoryUsePercent(categoryUsePercentMap.get("모바일페이"))
+                    .othersCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "기타"))
+                    .othersCategoryBudget(categoryBudgetMap.get("기타"))
+                    .othersCategoryUsePercent(categoryUsePercentMap.get("기타"))
+                    .build();
+        } catch (Exception e) {
+            log.error("Error generating report detail page", e);
+            throw new RuntimeException("Error generating report detail page", e);
+        }
+    }
 
     private Long getCategoryAmountByCategoryName(CategoryConsumption consumption, String categoryName) {
         if (consumption == null) {
@@ -333,185 +574,6 @@ public class ReportServiceImpl implements ReportService {
             case "기타" -> consumption.getOthersConsumption();
             default -> throw new IllegalArgumentException("Unknown category name: " + categoryName);
         };
-    }
-
-    private Integer calculatePercentageChange(Long currentAmount, Long lastMonthAmount) {
-        if (lastMonthAmount == null || lastMonthAmount==0) {
-            return currentAmount > 0 ? null : 0; // 0으로 나누는 경우, 현재 금액이 양수면 100%, 그렇지 않으면 0%
-        }
-        double percentageChange = ((double) (currentAmount - lastMonthAmount) / lastMonthAmount) * 100;
-        return (int) Math.round(percentageChange); // 소수점을 반올림하여 int로 변환
-    }
-
-
-    /*-------------------------------- 상세 페이지 -----------------------------------*/
-
-    @Override
-    @Transactional
-    public ReportResDetailDTO reportDetailPage(Long userId, String date){
-        // 상세 페이지에서도 요약 페이지와 비슷하게 진행
-        LocalDate currentMonth = LocalDate.now();
-        String stringCurrentMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
-        String dateMonth = date.substring(0, 6); // date에서 yyyyMM 부분만 추출
-
-        if (stringCurrentMonth.equals(dateMonth)) {
-            return nowDetailPage(userId, date);
-        } else {
-            return pastDetailPage(userId, date);
-        }
-    }
-
-    @Transactional
-    public ReportResDetailDTO nowDetailPage(Long userId, String date) {
-        try {
-            // 현재 달의 모든 소비량 데이터 조회
-            List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date.substring(0, 6));
-
-            // 현재 달의 각 카테고리별 총 소비량 계산
-            Map<String, Long> nowCategoryTotals = new HashMap<>();
-            for (CategoryConsumption consumption : currentMonthConsumptions) {
-                nowCategoryTotals.merge("오락", consumption.getEntertainmentConsumption(), Long::sum);
-                nowCategoryTotals.merge("문화", consumption.getCultureConsumption(), Long::sum);
-                nowCategoryTotals.merge("카페", consumption.getCafeConsumption(), Long::sum);
-                nowCategoryTotals.merge("스포츠", consumption.getSportsConsumption(), Long::sum);
-                nowCategoryTotals.merge("음식점", consumption.getFoodConsumption(), Long::sum);
-                nowCategoryTotals.merge("숙박비", consumption.getAccommodationConsumption(), Long::sum);
-                nowCategoryTotals.merge("잡화소매", consumption.getRetailConsumption(), Long::sum);
-                nowCategoryTotals.merge("쇼핑", consumption.getShoppingConsumption(), Long::sum);
-                nowCategoryTotals.merge("개인이체", consumption.getTransferConsumption(), Long::sum);
-                nowCategoryTotals.merge("교통비", consumption.getTransportationConsumption(), Long::sum);
-                nowCategoryTotals.merge("의료비", consumption.getMedicalConsumption(), Long::sum);
-                nowCategoryTotals.merge("보험비", consumption.getInsuranceConsumption(), Long::sum);
-                nowCategoryTotals.merge("구독/정기결제", consumption.getSubConsumption(), Long::sum);
-                nowCategoryTotals.merge("교육비", consumption.getEduConsumption(), Long::sum);
-                nowCategoryTotals.merge("모바일페이", consumption.getMobileConsumption(), Long::sum);
-                nowCategoryTotals.merge("기타", consumption.getOthersConsumption(), Long::sum);
-            }
-
-            // 최고 소비량 카테고리 찾기
-            Map.Entry<String, Long> highestCategory = nowCategoryTotals.entrySet().stream()
-                    .max(Map.Entry.comparingByValue())
-                    .orElseThrow(() -> new RuntimeException("No consumption data available"));
-
-            // 최저 소비량 카테고리 찾기
-            Map.Entry<String, Long> lowestCategory = nowCategoryTotals.entrySet().stream()
-                    .min(Map.Entry.comparingByValue())
-                    .orElseThrow(() -> new RuntimeException("No consumption data available"));
-
-            // 저번 달 같은 날짜 구하기
-            String lastMonthDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"))
-                    .minusMonths(1)
-                    .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-            // 저번 달 같은 날짜의 CategoryConsumption 조회
-            CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElseThrow(() -> new IllegalArgumentException("지난 달의 해당 날짜에 대한 소비량 데이터가 없습니다."));
-
-            // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
-            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
-            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
-
-            // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
-            int highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
-            int lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
-
-            // 카테고리별 변동 % 계산
-            Map<String, Integer> categoryChangePercentMap = new HashMap<>();
-            for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
-                Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
-                int changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
-                categoryChangePercentMap.put(entry.getKey(), changePercent);
-            }
-
-            // 카테고리 예산 조회를 위한 Report
-            Report report = reportRepository.findReportByUserIdAndDate(userId, date)
-                    .orElseThrow(() -> new IllegalArgumentException("해당 날짜에 대한 예산 정보가 없습니다."));
-
-            // 카테고리 예산 조회
-            Map<String, Long> categoryBudgetMap = new HashMap<>();
-            categoryBudgetMap.put("오락", report.getEntertainmentBudget());
-            categoryBudgetMap.put("문화", report.getCultureBudget());
-            categoryBudgetMap.put("카페", report.getCafeBudget());
-            categoryBudgetMap.put("스포츠", report.getSportsBudget());
-            categoryBudgetMap.put("음식점", report.getFoodBudget());
-            categoryBudgetMap.put("숙박비", report.getAccommodationBudget());
-            categoryBudgetMap.put("잡화소매", report.getRetailBudget());
-            categoryBudgetMap.put("쇼핑", report.getShoppingBudget());
-            categoryBudgetMap.put("개인이체", report.getTransferBudget());
-            categoryBudgetMap.put("교통비", report.getTransportationBudget());
-            categoryBudgetMap.put("의료비", report.getMedicalBudget());
-            categoryBudgetMap.put("보험비", report.getInsuranceBudget());
-            categoryBudgetMap.put("구독/정기결제", report.getSubBudget());
-            categoryBudgetMap.put("교육비", report.getEduBudget());
-            categoryBudgetMap.put("모바일페이", report.getMobileBudget());
-            categoryBudgetMap.put("기타", report.getOthersBudget());
-
-            // 카테고리 사용률 계산
-            Map<String, Integer> categoryUsePercentMap = new HashMap<>();
-            for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
-                Long budget = categoryBudgetMap.get(entry.getKey());
-                int usePercent = (int)(entry.getValue() / (double) budget) * 100;
-                categoryUsePercentMap.put(entry.getKey(), usePercent);
-            }
-
-            // ReportResDetailDTO 생성 및 반환
-            return ReportResDetailDTO.builder()
-                    .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent(highestCategoryPercentageChange)
-                    .lowestCategory(lowestCategory.getKey())
-                    .lowestCategoryPercent(lowestCategoryPercentageChange)
-                    .entertainmentCategoryChangePercent(categoryChangePercentMap.get("오락"))
-                    .entertainmentCategoryBudget(categoryBudgetMap.get("오락"))
-                    .entertainmentCategoryUsePercent(categoryUsePercentMap.get("오락"))
-                    .cultureCategoryChangePercent(categoryChangePercentMap.get("문화"))
-                    .cultureCategoryBudget(categoryBudgetMap.get("문화"))
-                    .cultureCategoryUsePercent(categoryUsePercentMap.get("문화"))
-                    .cafeCategoryChangePercent(categoryChangePercentMap.get("카페"))
-                    .cafeCategoryBudget(categoryBudgetMap.get("카페"))
-                    .cafeCategoryUsePercent(categoryUsePercentMap.get("카페"))
-                    .sportsCategoryChangePercent(categoryChangePercentMap.get("스포츠"))
-                    .sportsCategoryBudget(categoryBudgetMap.get("스포츠"))
-                    .sportsCategoryUsePercent(categoryUsePercentMap.get("스포츠"))
-                    .foodCategoryChangePercent(categoryChangePercentMap.get("음식점"))
-                    .foodCategoryBudget(categoryBudgetMap.get("음식점"))
-                    .foodCategoryUsePercent(categoryUsePercentMap.get("음식점"))
-                    .accommodationCategoryChangePercent(categoryChangePercentMap.get("숙박비"))
-                    .accommodationCategoryBudget(categoryBudgetMap.get("숙박비"))
-                    .accommodationCategoryUsePercent(categoryUsePercentMap.get("숙박비"))
-                    .retailCategoryChangePercent(categoryChangePercentMap.get("잡화소매"))
-                    .retailCategoryBudget(categoryBudgetMap.get("잡화소매"))
-                    .retailCategoryUsePercent(categoryUsePercentMap.get("잡화소매"))
-                    .shoppingCategoryChangePercent(categoryChangePercentMap.get("쇼핑"))
-                    .shoppingCategoryBudget(categoryBudgetMap.get("쇼핑"))
-                    .shoppingCategoryUsePercent(categoryUsePercentMap.get("쇼핑"))
-                    .transferCategoryChangePercent(categoryChangePercentMap.get("개인이체"))
-                    .transferCategoryBudget(categoryBudgetMap.get("개인이체"))
-                    .transferCategoryUsePercent(categoryUsePercentMap.get("개인이체"))
-                    .transportationCategoryChangePercent(categoryChangePercentMap.get("교통비"))
-                    .transportationCategoryBudget(categoryBudgetMap.get("교통비"))
-                    .transportationCategoryUsePercent(categoryUsePercentMap.get("교통비"))
-                    .medicalCategoryChangePercent(categoryChangePercentMap.get("의료비"))
-                    .medicalCategoryBudget(categoryBudgetMap.get("의료비"))
-                    .medicalCategoryUsePercent(categoryUsePercentMap.get("의료비"))
-                    .insuranceCategoryChangePercent(categoryChangePercentMap.get("보험비"))
-                    .insuranceCategoryBudget(categoryBudgetMap.get("보험비"))
-                    .insuranceCategoryUsePercent(categoryUsePercentMap.get("보험비"))
-                    .subCategoryChangePercent(categoryChangePercentMap.get("구독/정기결제"))
-                    .subCategoryBudget(categoryBudgetMap.get("구독/정기결제"))
-                    .subCategoryUsePercent(categoryUsePercentMap.get("구독/정기결제"))
-                    .eduCategoryChangePercent(categoryChangePercentMap.get("교육비"))
-                    .eduCategoryBudget(categoryBudgetMap.get("교육비"))
-                    .eduCategoryUsePercent(categoryUsePercentMap.get("교육비"))
-                    .mobileCategoryChangePercent(categoryChangePercentMap.get("모바일페이"))
-                    .mobileCategoryBudget(categoryBudgetMap.get("모바일페이"))
-                    .mobileCategoryUsePercent(categoryUsePercentMap.get("모바일페이"))
-                    .othersCategoryChangePercent(categoryChangePercentMap.get("기타"))
-                    .othersCategoryBudget(categoryBudgetMap.get("기타"))
-                    .othersCategoryUsePercent(categoryUsePercentMap.get("기타"))
-                    .build();
-        } catch (Exception e) {
-            throw new RuntimeException("오류가 발생했습니다: " + e.getMessage());
-        }
     }
 
 
@@ -564,21 +626,21 @@ public class ReportServiceImpl implements ReportService {
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
             CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElseThrow(() -> new IllegalArgumentException("지난 달의 해당 날짜에 대한 소비량 데이터가 없습니다."));
+                    .orElse(null);
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
             Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
             Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
-            int highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
-            int lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
+            Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
 
             // 카테고리별 변동 % 계산
             Map<String, Integer> categoryChangePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : pastCategoryTotals.entrySet()) {
                 Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
-                int changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
+                Integer changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
                 categoryChangePercentMap.put(entry.getKey(), changePercent);
             }
 
@@ -587,28 +649,29 @@ public class ReportServiceImpl implements ReportService {
                     .orElseThrow(() -> new IllegalArgumentException("해당 날짜에 대한 예산 정보가 없습니다."));
 
             // 카테고리 예산 조회
-            Map<String, Long> categoryBudgetMap = new HashMap<>();
-            categoryBudgetMap.put("오락", report.getEntertainmentBudget());
-            categoryBudgetMap.put("문화", report.getCultureBudget());
-            categoryBudgetMap.put("카페", report.getCafeBudget());
-            categoryBudgetMap.put("스포츠", report.getSportsBudget());
-            categoryBudgetMap.put("음식점", report.getFoodBudget());
-            categoryBudgetMap.put("숙박비", report.getAccommodationBudget());
-            categoryBudgetMap.put("잡화소매", report.getRetailBudget());
-            categoryBudgetMap.put("쇼핑", report.getShoppingBudget());
-            categoryBudgetMap.put("개인이체", report.getTransferBudget());
-            categoryBudgetMap.put("교통비", report.getTransportationBudget());
-            categoryBudgetMap.put("의료비", report.getMedicalBudget());
-            categoryBudgetMap.put("보험비", report.getInsuranceBudget());
-            categoryBudgetMap.put("구독/정기결제", report.getSubBudget());
-            categoryBudgetMap.put("교육비", report.getEduBudget());
-            categoryBudgetMap.put("모바일페이", report.getMobileBudget());
-            categoryBudgetMap.put("기타", report.getOthersBudget());
+            Map<String, Integer> categoryBudgetMap = new HashMap<>();
+            categoryBudgetMap.put("오락", report.getEntertainmentBudget().intValue());
+            categoryBudgetMap.put("문화", report.getCultureBudget().intValue());
+            categoryBudgetMap.put("카페", report.getCafeBudget().intValue());
+            categoryBudgetMap.put("스포츠", report.getSportsBudget().intValue());
+            categoryBudgetMap.put("음식점", report.getFoodBudget().intValue());
+            categoryBudgetMap.put("숙박비", report.getAccommodationBudget().intValue());
+            categoryBudgetMap.put("잡화소매", report.getRetailBudget().intValue());
+            categoryBudgetMap.put("쇼핑", report.getShoppingBudget().intValue());
+            categoryBudgetMap.put("개인이체", report.getTransferBudget().intValue());
+            categoryBudgetMap.put("교통비", report.getTransportationBudget().intValue());
+            categoryBudgetMap.put("의료비", report.getMedicalBudget().intValue());
+            categoryBudgetMap.put("보험비", report.getInsuranceBudget().intValue());
+            categoryBudgetMap.put("구독/정기결제", report.getSubBudget().intValue());
+            categoryBudgetMap.put("교육비", report.getEduBudget().intValue());
+            categoryBudgetMap.put("모바일페이", report.getMobileBudget().intValue());
+            categoryBudgetMap.put("기타", report.getOthersBudget().intValue());
+            log.info("categoryBudgetMap : " + categoryBudgetMap);
 
             // 카테고리 사용률 계산
             Map<String, Integer> categoryUsePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : pastCategoryTotals.entrySet()) {
-                Long budget = categoryBudgetMap.get(entry.getKey());
+                Integer budget = categoryBudgetMap.get(entry.getKey());
                 int usePercent = (int)(entry.getValue() / (double) budget) * 100;
                 categoryUsePercentMap.put(entry.getKey(), usePercent);
             }
@@ -616,55 +679,55 @@ public class ReportServiceImpl implements ReportService {
             // ReportResDetailDTO 생성 및 반환
             return ReportResDetailDTO.builder()
                     .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent(highestCategoryPercentageChange)
+                    .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999)
                     .lowestCategory(lowestCategory.getKey())
-                    .lowestCategoryPercent(lowestCategoryPercentageChange)
-                    .entertainmentCategoryChangePercent(categoryChangePercentMap.get("오락"))
+                    .lowestCategoryPercent((lowestCategoryPercentageChange != null) ? lowestCategoryPercentageChange : 999999)
+                    .entertainmentCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "오락"))
                     .entertainmentCategoryBudget(categoryBudgetMap.get("오락"))
                     .entertainmentCategoryUsePercent(categoryUsePercentMap.get("오락"))
-                    .cultureCategoryChangePercent(categoryChangePercentMap.get("문화"))
+                    .cultureCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "문화"))
                     .cultureCategoryBudget(categoryBudgetMap.get("문화"))
                     .cultureCategoryUsePercent(categoryUsePercentMap.get("문화"))
-                    .cafeCategoryChangePercent(categoryChangePercentMap.get("카페"))
+                    .cafeCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "카페"))
                     .cafeCategoryBudget(categoryBudgetMap.get("카페"))
                     .cafeCategoryUsePercent(categoryUsePercentMap.get("카페"))
-                    .sportsCategoryChangePercent(categoryChangePercentMap.get("스포츠"))
+                    .sportsCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "스포츠"))
                     .sportsCategoryBudget(categoryBudgetMap.get("스포츠"))
                     .sportsCategoryUsePercent(categoryUsePercentMap.get("스포츠"))
-                    .foodCategoryChangePercent(categoryChangePercentMap.get("음식점"))
+                    .foodCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "음식점"))
                     .foodCategoryBudget(categoryBudgetMap.get("음식점"))
                     .foodCategoryUsePercent(categoryUsePercentMap.get("음식점"))
-                    .accommodationCategoryChangePercent(categoryChangePercentMap.get("숙박비"))
+                    .accommodationCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "숙박비"))
                     .accommodationCategoryBudget(categoryBudgetMap.get("숙박비"))
                     .accommodationCategoryUsePercent(categoryUsePercentMap.get("숙박비"))
-                    .retailCategoryChangePercent(categoryChangePercentMap.get("잡화소매"))
+                    .retailCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "잡화소매"))
                     .retailCategoryBudget(categoryBudgetMap.get("잡화소매"))
                     .retailCategoryUsePercent(categoryUsePercentMap.get("잡화소매"))
-                    .shoppingCategoryChangePercent(categoryChangePercentMap.get("쇼핑"))
+                    .shoppingCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "쇼핑"))
                     .shoppingCategoryBudget(categoryBudgetMap.get("쇼핑"))
                     .shoppingCategoryUsePercent(categoryUsePercentMap.get("쇼핑"))
-                    .transferCategoryChangePercent(categoryChangePercentMap.get("개인이체"))
+                    .transferCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "개인이체"))
                     .transferCategoryBudget(categoryBudgetMap.get("개인이체"))
                     .transferCategoryUsePercent(categoryUsePercentMap.get("개인이체"))
-                    .transportationCategoryChangePercent(categoryChangePercentMap.get("교통비"))
+                    .transportationCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "교통비"))
                     .transportationCategoryBudget(categoryBudgetMap.get("교통비"))
                     .transportationCategoryUsePercent(categoryUsePercentMap.get("교통비"))
-                    .medicalCategoryChangePercent(categoryChangePercentMap.get("의료비"))
+                    .medicalCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "의료비"))
                     .medicalCategoryBudget(categoryBudgetMap.get("의료비"))
                     .medicalCategoryUsePercent(categoryUsePercentMap.get("의료비"))
-                    .insuranceCategoryChangePercent(categoryChangePercentMap.get("보험비"))
+                    .insuranceCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "보험비"))
                     .insuranceCategoryBudget(categoryBudgetMap.get("보험비"))
                     .insuranceCategoryUsePercent(categoryUsePercentMap.get("보험비"))
-                    .subCategoryChangePercent(categoryChangePercentMap.get("구독/정기결제"))
+                    .subCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "구독/정기결제"))
                     .subCategoryBudget(categoryBudgetMap.get("구독/정기결제"))
                     .subCategoryUsePercent(categoryUsePercentMap.get("구독/정기결제"))
-                    .eduCategoryChangePercent(categoryChangePercentMap.get("교육비"))
+                    .eduCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "교육비"))
                     .eduCategoryBudget(categoryBudgetMap.get("교육비"))
                     .eduCategoryUsePercent(categoryUsePercentMap.get("교육비"))
-                    .mobileCategoryChangePercent(categoryChangePercentMap.get("모바일페이"))
+                    .mobileCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "모바일페이"))
                     .mobileCategoryBudget(categoryBudgetMap.get("모바일페이"))
                     .mobileCategoryUsePercent(categoryUsePercentMap.get("모바일페이"))
-                    .othersCategoryChangePercent(categoryChangePercentMap.get("기타"))
+                    .othersCategoryChangePercent(getCategoryChangePercent(categoryChangePercentMap, "기타"))
                     .othersCategoryBudget(categoryBudgetMap.get("기타"))
                     .othersCategoryUsePercent(categoryUsePercentMap.get("기타"))
                     .build();
@@ -674,7 +737,9 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-
+    private Integer getCategoryChangePercent(Map<String, Integer> categoryChangePercentMap, String category) {
+        return categoryChangePercentMap.getOrDefault(category, 999999);
+    }
 
     /*-------------------------------- 소비 비율 계산 -----------------------------------*/
     @Override

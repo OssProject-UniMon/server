@@ -27,7 +27,7 @@ public class ReportResDetailDTO {
     private int entertainmentCategoryChangePercent;
 
     @Schema(description = "오락 카테고리의 예산 (목표 금액)")
-    private long entertainmentCategoryBudget;
+    private int entertainmentCategoryBudget;
 
     @Schema(description = "오락 카테고리의 소비량 (예산과 비교한 %)")
     private int entertainmentCategoryUsePercent;
@@ -37,7 +37,7 @@ public class ReportResDetailDTO {
     private int cultureCategoryChangePercent;
 
     @Schema(description = "문화 카테고리의 예산 (목표 금액)")
-    private long cultureCategoryBudget;
+    private int cultureCategoryBudget;
 
     @Schema(description = "문화 카테고리의 소비량 (예산과 비교한 %)")
     private int cultureCategoryUsePercent;
@@ -47,7 +47,7 @@ public class ReportResDetailDTO {
     private int cafeCategoryChangePercent;
 
     @Schema(description = "카페 카테고리의 예산 (목표 금액)")
-    private long cafeCategoryBudget;
+    private int cafeCategoryBudget;
 
     @Schema(description = "카페 카테고리의 소비량 (예산과 비교한 %)")
     private int cafeCategoryUsePercent;
@@ -57,7 +57,7 @@ public class ReportResDetailDTO {
     private int sportsCategoryChangePercent;
 
     @Schema(description = "스포츠 카테고리의 예산 (목표 금액)")
-    private long sportsCategoryBudget;
+    private int sportsCategoryBudget;
 
     @Schema(description = "스포츠 카테고리의 소비량 (예산과 비교한 %)")
     private int sportsCategoryUsePercent;
@@ -67,7 +67,7 @@ public class ReportResDetailDTO {
     private int foodCategoryChangePercent;
 
     @Schema(description = "음식점 카테고리의 예산 (목표 금액)")
-    private long foodCategoryBudget;
+    private int foodCategoryBudget;
 
     @Schema(description = "음식점 카테고리의 소비량 (예산과 비교한 %)")
     private int foodCategoryUsePercent;
@@ -77,7 +77,7 @@ public class ReportResDetailDTO {
     private int accommodationCategoryChangePercent;
 
     @Schema(description = "숙박비 카테고리의 예산 (목표 금액)")
-    private long accommodationCategoryBudget;
+    private int accommodationCategoryBudget;
 
     @Schema(description = "숙박비 카테고리의 소비량 (예산과 비교한 %)")
     private int accommodationCategoryUsePercent;
@@ -87,7 +87,7 @@ public class ReportResDetailDTO {
     private int retailCategoryChangePercent;
 
     @Schema(description = "잡화소매 카테고리의 예산 (목표 금액)")
-    private long retailCategoryBudget;
+    private int retailCategoryBudget;
 
     @Schema(description = "잡화소매 카테고리의 소비량 (예산과 비교한 %)")
     private int retailCategoryUsePercent;
@@ -97,7 +97,7 @@ public class ReportResDetailDTO {
     private int shoppingCategoryChangePercent;
 
     @Schema(description = "쇼핑 카테고리의 예산 (목표 금액)")
-    private long shoppingCategoryBudget;
+    private int shoppingCategoryBudget;
 
     @Schema(description = "쇼핑 카테고리의 소비량 (예산과 비교한 %)")
     private int shoppingCategoryUsePercent;
@@ -107,7 +107,7 @@ public class ReportResDetailDTO {
     private int transferCategoryChangePercent;
 
     @Schema(description = "이체 카테고리의 예산 (목표 금액)")
-    private long transferCategoryBudget;
+    private int transferCategoryBudget;
 
     @Schema(description = "이체 카테고리의 소비량 (예산과 비교한 %)")
     private int transferCategoryUsePercent;
@@ -117,7 +117,7 @@ public class ReportResDetailDTO {
     private int transportationCategoryChangePercent;
 
     @Schema(description = "교통비 카테고리의 예산 (목표 금액)")
-    private long transportationCategoryBudget;
+    private int transportationCategoryBudget;
 
     @Schema(description = "교통비 카테고리의 소비량 (예산과 비교한 %)")
     private int transportationCategoryUsePercent;
@@ -127,7 +127,7 @@ public class ReportResDetailDTO {
     private int medicalCategoryChangePercent;
 
     @Schema(description = "의료비 카테고리의 예산 (목표 금액)")
-    private long medicalCategoryBudget;
+    private int medicalCategoryBudget;
 
     @Schema(description = "의료비 카테고리의 소비량 (예산과 비교한 %)")
     private int medicalCategoryUsePercent;
@@ -137,7 +137,7 @@ public class ReportResDetailDTO {
     private int insuranceCategoryChangePercent;
 
     @Schema(description = "보험비 카테고리의 예산 (목표 금액)")
-    private long insuranceCategoryBudget;
+    private int insuranceCategoryBudget;
 
     @Schema(description = "보험비 카테고리의 소비량 (예산과 비교한 %)")
     private int insuranceCategoryUsePercent;
@@ -147,7 +147,7 @@ public class ReportResDetailDTO {
     private int subCategoryChangePercent;
 
     @Schema(description = "구독/정기결제 카테고리의 예산 (목표 금액)")
-    private long subCategoryBudget;
+    private int subCategoryBudget;
 
     @Schema(description = "구독/정기결제 카테고리의 소비량 (예산과 비교한 %)")
     private int subCategoryUsePercent;
@@ -157,7 +157,7 @@ public class ReportResDetailDTO {
     private int eduCategoryChangePercent;
 
     @Schema(description = "교육비 카테고리의 예산 (목표 금액)")
-    private long eduCategoryBudget;
+    private int eduCategoryBudget;
 
     @Schema(description = "교육비 카테고리의 소비량 (예산과 비교한 %)")
     private int eduCategoryUsePercent;
@@ -167,7 +167,7 @@ public class ReportResDetailDTO {
     private int mobileCategoryChangePercent;
 
     @Schema(description = "모바일페이 카테고리의 예산 (목표 금액)")
-    private long mobileCategoryBudget;
+    private int mobileCategoryBudget;
 
     @Schema(description = "모바일페이 카테고리의 소비량 (예산과 비교한 %)")
     private int mobileCategoryUsePercent;
@@ -177,7 +177,7 @@ public class ReportResDetailDTO {
     private int othersCategoryChangePercent;
 
     @Schema(description = "기타 카테고리의 예산 (목표 금액)")
-    private long othersCategoryBudget;
+    private int othersCategoryBudget;
 
     @Schema(description = "기타 카테고리의 소비량 (예산과 비교한 %)")
     private int othersCategoryUsePercent;
