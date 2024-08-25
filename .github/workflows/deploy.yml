@@ -60,17 +60,17 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            rm -f ~/server.jar
+            rm -f /home/ubuntu/server.jar
 
-      - name: Upload new server.jar
-        uses: appleboy/scp-action@master
+      - name: Upload new server.jar using scp
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          source: ./server.jar
-          target: /home/ubuntu/server.jar
+          script: |
+            scp -i ~/.ssh/id_rsa ./server.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/server.jar
 
       - name: Start new Java server in screen session
         uses: appleboy/ssh-action@master
@@ -81,4 +81,4 @@ jobs:
           port: 22
           script: |
             screen -dmS javaserver
-            screen -S javaserver -X stuff 'java -jar /home/ubuntu/server.jar > log.txt 2>&1\n'
+            screen -S javaserver -X stuff 'java -jar /home/ubuntu/server.jar > /home/ubuntu/log.txt 2>&1\n'
