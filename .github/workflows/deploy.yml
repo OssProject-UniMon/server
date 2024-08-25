@@ -70,7 +70,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            scp -i ~/.ssh/id_rsa ./server.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/server.jar
+            scp /home/runner/work/${{ github.repository }}/${{ github.repository }}/server.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/server.jar
 
       - name: Start new Java server in screen session
         uses: appleboy/ssh-action@master
