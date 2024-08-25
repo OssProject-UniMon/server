@@ -31,26 +31,54 @@ jobs:
           name: server-jar
           path: build/libs/server.jar
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
+deploy:
+  needs: build
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: server-jar
-          path: ./server.jar
+  steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: server-jar
+        path: ./server.jar
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          script: |
-            pkill -f 'java -jar'
-            rm -f ~/server.jar
-            mv ./server.jar ~/server.jar
-            nohup java -jar ~/server.jar > log.txt 2>&1 &
+    - name: Stop existing Java process
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          pkill -f 'java -jar'
+
+    - name: Remove old server.jar
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          rm -f ~/server.jar
+
+    - name: Upload new server.jar
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        source: ./server.jar
+        target: ~/server.jar
+
+    - name: Start new Java server in screen session
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_KEY }}
+        port: 22
+        script: |
+          screen -dmS javaserver
+          screen -S javaserver -X stuff 'java -jar ~/server.jar > log.txt 2>&1\n'
