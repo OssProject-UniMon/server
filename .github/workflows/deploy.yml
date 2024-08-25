@@ -80,4 +80,4 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            screen -dmS javaserver java -jar /home/ubuntu/server.jar
+            screen -dmS javaserver java -jar /home/ubuntu/server.jar/server.jar
