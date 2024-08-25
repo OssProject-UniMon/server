@@ -50,7 +50,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            pkill -f 'java -jar' || true
+            pgrep -f 'java -jar' && pkill -f 'java -jar' || true
 
       - name: Remove old server.jar
         uses: appleboy/ssh-action@master
