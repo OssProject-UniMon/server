@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @Table(name = "report")
 @AllArgsConstructor
@@ -26,6 +27,9 @@ public class Report {
     @Lob
     @Column(name = "advice", columnDefinition = "text")
     private String advice;
+
+    @Column(name = "total_budget")
+    private Long totalBudget;
 
     @Column(name = "entertainment_budget")
     private Long entertainmentBudget;
@@ -71,4 +75,7 @@ public class Report {
 
     @Column(name = "mobile_budget")
     private Long mobileBudget;
+
+    @Column(name = "others_budget")
+    private Long othersBudget;
 }

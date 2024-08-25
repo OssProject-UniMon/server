@@ -14,6 +14,7 @@ import dongguk.capstone.backend.card.entity.Card;
 import dongguk.capstone.backend.card.repository.CardRepository;
 import dongguk.capstone.backend.categoryconsumption.entity.CategoryConsumption;
 import dongguk.capstone.backend.categoryconsumption.repository.CategoryConsumptionRepository;
+import dongguk.capstone.backend.dailyconsumption.service.DailyConsumptionService;
 import dongguk.capstone.backend.log.dto.LogsListDTO;
 import dongguk.capstone.backend.log.dto.response.LogsResDTO;
 import dongguk.capstone.backend.log.entity.Log;
@@ -43,6 +44,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -51,6 +53,7 @@ public class LogServiceImpl implements LogService{
     @Value("${openai.api.key}")
     private String apikey; // 연동할 chat gpt assistant api의 api key
 
+    private final DailyConsumptionService dailyConsumptionService;
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final CardRepository cardRepository;
@@ -62,10 +65,12 @@ public class LogServiceImpl implements LogService{
     private static final String LEDGER_FLASK_SERVER_URL = "http://13.124.16.179:5000/classify";
 
 
-    public LogServiceImpl(UserRepository userRepository, AccountRepository accountRepository,
+    public LogServiceImpl(DailyConsumptionService dailyConsumptionService,
+                          UserRepository userRepository, AccountRepository accountRepository,
                           CardRepository cardRepository, LogRepository logRepository,
                           CategoryConsumptionRepository categoryConsumptionRepository) throws MalformedURLException {
         barobillApiService = new BarobillApiService(BarobillApiProfile.RELEASE);
+        this.dailyConsumptionService = dailyConsumptionService;
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.cardRepository = cardRepository;
@@ -110,99 +115,101 @@ public class LogServiceImpl implements LogService{
 
     @Override
     @Transactional
-    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
+    @Scheduled(cron = "0 0 0 * * *")
     public void fetchAndSaveLogs() {
         List<User> users = userRepository.findAll();
         log.info("users : {}", users);
 
         for (User user : users) {
-            List<Account> accounts = accountRepository.findAll();
-            List<Card> cards = cardRepository.findAll();
+            processUserLogs(user);
+        }
+    }
 
-            log.info("accounts : {}", accounts);
-            log.info("cards : {}", cards);
+    private void processUserLogs(User user) {
+        List<Account> accounts = accountRepository.findAll();
+        List<Card> cards = cardRepository.findAll();
 
-            // 오늘 날짜를 가져옴
-            LocalDate today = LocalDate.now();
-            log.info("today : {}", today);
+        log.info("accounts : {}", accounts);
+        log.info("cards : {}", cards);
 
-            // 시작일은 오늘로부터 3달 전으로 설정
-            LocalDate startDate = today.minusMonths(3);
-            log.info("startDate : {}", startDate);
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = getStartDateForUser(user, today);
 
-            // 종료일은 오늘 날짜로 설정
-            log.info("endDate : {}", today);
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = today.atTime(23, 59, 59);
 
-            // 시작일을 LocalDateTime으로 변환하고 시간을 00:00:00으로 설정
-            LocalDateTime startDateTime = startDate.atStartOfDay();
-            log.info("startDateTime : {}", startDateTime);
+        String startDateString = startDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String endDateString = endDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-            // 종료일을 LocalDateTime으로 변환하고 시간을 23:59:59로 설정
-            LocalDateTime endDateTime = today.atTime(23, 59, 59);
-            log.info("endDateTime : {}", endDateTime);
+        Account account = findAccountForUser(user, accounts);
+        Card card = findCardForUser(user, cards);
 
-            String startDateString = startDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String endDateString = endDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        try {
+            PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
+                    "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
+                    account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 100, 1, 2);
 
-            log.info("startDateString : {}", startDateString);
-            log.info("endDateString : {}", endDateString);
+            PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
+                    "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
+                    card.getCardEmbedded().getCardNum(), startDateString, endDateString, 100, 1, 2);
 
-            Account account = accounts.stream()
-                    .filter(acc -> user.getUserId().equals(acc.getUser().getUserId()))
-                    .findFirst()
-                    .orElse(null);
+            processLogs(accountLog, cardLog, user.getUserId());
+            dailyConsumptionService.saveDailyConsumption(user.getUserId(), endDateString);
+        } catch (Exception e) {
+            log.error("Exception occurred while processing logs for user {}: {}", user.getUserId(), e.getMessage());
+        }
+    }
 
-            Card card = cards.stream()
-                    .filter(c -> user.getUserId().equals(c.getUser().getUserId()))
-                    .findFirst()
-                    .orElse(null);
+    private LocalDate getStartDateForUser(User user, LocalDate today) {
+        String lastSavedDate = logRepository.findLastSavedDateByUserId(user.getUserId());
+        if (lastSavedDate != null) {
+            return LocalDate.parse(lastSavedDate, DateTimeFormatter.ofPattern("yyyyMMdd")).plusDays(1);
+        } else {
+            return today.minusMonths(3);
+        }
+    }
 
-            // 기존 로그 삭제
-            logRepository.deleteByLogEmbeddedUserId(user.getUserId());
+    private Account findAccountForUser(User user, List<Account> accounts) {
+        return accounts.stream()
+                .filter(acc -> user.getUserId().equals(acc.getUser().getUserId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Account not found for user " + user.getUserId()));
+    }
 
-            try {
-                // 바로빌 API를 사용하여 계좌 조회
-                PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
-                        "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
-                        account.getAccountEmbedded().getBankAccountNum(), startDateString, endDateString, 100, 1, 2);
+    private Card findCardForUser(User user, List<Card> cards) {
+        return cards.stream()
+                .filter(c -> user.getUserId().equals(c.getUser().getUserId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Card not found for user " + user.getUserId()));
+    }
 
-                log.info("accountLog : {}", accountLog);
+    private void processLogs(PagedBankAccountLogEx accountLog, PagedCardLogEx cardLog, Long userId) {
+        try{
+            List<CardLogEx> processedCardLogs = new ArrayList<>();
+            List<BankAccountLogEx> processedBankAccountLogs = new ArrayList<>();
 
-                // 바로빌 API를 사용하여 카드 조회
-                PagedCardLogEx cardLog = barobillApiService.card.getPeriodCardLogEx(
-                        "181A0E21-E0B0-4AC8-9C8F-BBEAEA954C9D", "2018204468", "capstone11",
-                        card.getCardEmbedded().getCardNum(), startDateString, endDateString, 100, 1, 2);
+            if (accountLog.getCurrentPage() < 0) {
+                log.error("Failed to retrieve account log");
+                return;
+            }
 
-                log.info("cardLog : {}", cardLog);
+            for (BankAccountLogEx bankAccountLogEx : accountLog.getBankAccountLogList().getBankAccountLogEx()) {
+                for (CardLogEx cardLogEx : cardLog.getCardLogList().getCardLogEx()) {
+                    if (processedCardLogs.contains(cardLogEx) || processedBankAccountLogs.contains(bankAccountLogEx)) {
+                        continue;
+                    }
 
-                log.info("accountLog.getCurrentPage() : {}", accountLog.getCurrentPage());
-
-                if (accountLog.getCurrentPage() < 0) {  // 호출 실패
-                    log.error("Failed to retrieve account log");
-                } else {  // 호출 성공
-                    List<CardLogEx> processedCardLogs = new ArrayList<>(); // 처리된 카드 로그를 저장할 리스트
-                    List<BankAccountLogEx> processedBankAccountLogs = new ArrayList<>(); // 처리된 계좌 로그를 저장할 리스트
-
-                    for (BankAccountLogEx bankAccountLogEx : accountLog.getBankAccountLogList().getBankAccountLogEx()) {
-                        for (CardLogEx cardLogEx : cardLog.getCardLogList().getCardLogEx()) {
-                            // 이미 처리된 카드 로그나 계좌 로그는 건너뜀
-                            if (processedCardLogs.contains(cardLogEx) || processedBankAccountLogs.contains(bankAccountLogEx)) {
-                                continue;
-                            }
-                            if (!bankAccountLogEx.getTransType().contains("이체")) {
-                                LogsListDTO logsListDTO = getLogsListDTO(bankAccountLogEx, cardLogEx); // 여기서 IOException이 발생할 수 있기 때문에 try-catch문 사용
-                                Log logEntity = mapToLogEntity(user.getUserId(), cardLogEx.getCardNum(), logsListDTO);
-                                logRepository.save(logEntity); // LogRepository를 통해 저장
-                                processedCardLogs.add(cardLogEx); // 처리된 카드 로그를 리스트에 추가
-                                processedBankAccountLogs.add(bankAccountLogEx); // 처리된 계좌 로그를 리스트에 추가
-                            }
-                        }
+                    if (!bankAccountLogEx.getTransType().contains("이체")) {
+                        LogsListDTO logsListDTO = getLogsListDTO(bankAccountLogEx, cardLogEx);
+                        Log logEntity = mapToLogEntity(userId, cardLogEx.getCardNum(), logsListDTO);
+                        logRepository.save(logEntity);
+                        processedCardLogs.add(cardLogEx);
+                        processedBankAccountLogs.add(bankAccountLogEx);
                     }
                 }
-            } catch (Exception e) {
-                log.error("IOException occurred: {}", e.getMessage());
-                // IOException이 발생했을 때의 처리를 여기에 추가합니다.
             }
+        } catch (Exception e){
+            log.error("[LogService] processLogs error : ",e);
         }
     }
 
@@ -331,80 +338,110 @@ public class LogServiceImpl implements LogService{
         return logsListDTO;
     }
 
-    private void updateCategoryConsumption(Long userId, Long amount, String category) {
-        // CategoryConsumption 엔티티 가져오기 (해당 userId에 맞는)
-        CategoryConsumption categoryConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserId(userId)
-                .orElseGet(() -> CategoryConsumption.builder()
-                        .userId(userId)
-                        .entertainmentConsumption(0L)
-                        .cultureConsumption(0L)
-                        .cafeConsumption(0L)
-                        .sportsConsumption(0L)
-                        .foodConsumption(0L)
-                        .accommodationConsumption(0L)
-                        .retailConsumption(0L)
-                        .shoppingConsumption(0L)
-                        .transferConsumption(0L)
-                        .transportationConsumption(0L)
-                        .medicalConsumption(0L)
-                        .insuranceConsumption(0L)
-                        .subConsumption(0L)
-                        .eduConsumption(0L)
-                        .mobileConsumption(0L)
-                        .OthersConsumption(0L)
-                        .build());
+    private void updateCategoryConsumption(Long userId, String date, Long amount, String category) {
+        LocalDate currentDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // 이전 달의 같은 날짜 계산
+        LocalDate previousMonthSameDay = currentDate.minusMonths(1);
 
+        // 이전 달의 같은 날짜가 존재하는지 확인
+        Optional<CategoryConsumption> previousMonthCategoryConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, previousMonthSameDay.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+
+        boolean isLastCategoryConsumption = previousMonthCategoryConsumption.isPresent();
+
+        // 카테고리별 소비량 변수 초기화
+        long entertainmentConsumption = 0L;
+        long cultureConsumption = 0L;
+        long cafeConsumption = 0L;
+        long sportsConsumption = 0L;
+        long foodConsumption = 0L;
+        long accommodationConsumption = 0L;
+        long retailConsumption = 0L;
+        long shoppingConsumption = 0L;
+        long transferConsumption = 0L;
+        long transportationConsumption = 0L;
+        long medicalConsumption = 0L;
+        long insuranceConsumption = 0L;
+        long subConsumption = 0L;
+        long eduConsumption = 0L;
+        long mobileConsumption = 0L;
+        long othersConsumption = 0L;
+
+        // 카테고리에 따라 소비량 업데이트
         switch (category) {
             case "오락":
-                categoryConsumption.setEntertainmentConsumption(categoryConsumption.getEntertainmentConsumption() + amount);
+                entertainmentConsumption += amount;
                 break;
             case "문화":
-                categoryConsumption.setCultureConsumption(categoryConsumption.getCultureConsumption() + amount);
+                cultureConsumption += amount;
                 break;
             case "카페":
-                categoryConsumption.setCafeConsumption(categoryConsumption.getCafeConsumption() + amount);
+                cafeConsumption += amount;
                 break;
             case "스포츠":
-                categoryConsumption.setSportsConsumption(categoryConsumption.getSportsConsumption() + amount);
+                sportsConsumption += amount;
                 break;
             case "음식점":
-                categoryConsumption.setFoodConsumption(categoryConsumption.getFoodConsumption() + amount);
+                foodConsumption += amount;
                 break;
             case "숙박비":
-                categoryConsumption.setAccommodationConsumption(categoryConsumption.getAccommodationConsumption() + amount);
+                accommodationConsumption += amount;
                 break;
             case "잡화소매":
-                categoryConsumption.setRetailConsumption(categoryConsumption.getRetailConsumption() + amount);
+                retailConsumption += amount;
                 break;
             case "쇼핑":
-                categoryConsumption.setShoppingConsumption(categoryConsumption.getShoppingConsumption() + amount);
+                shoppingConsumption += amount;
                 break;
             case "개인이체":
-                categoryConsumption.setTransferConsumption(categoryConsumption.getTransferConsumption() + amount);
+                transferConsumption += amount;
                 break;
             case "교통비":
-                categoryConsumption.setTransportationConsumption(categoryConsumption.getTransportationConsumption() + amount);
+                transportationConsumption += amount;
                 break;
             case "의료비":
-                categoryConsumption.setMedicalConsumption(categoryConsumption.getMedicalConsumption() + amount);
+                medicalConsumption += amount;
                 break;
             case "보험비":
-                categoryConsumption.setInsuranceConsumption(categoryConsumption.getInsuranceConsumption() + amount);
+                insuranceConsumption += amount;
                 break;
             case "구독/정기결제":
-                categoryConsumption.setSubConsumption(categoryConsumption.getSubConsumption() + amount);
+                subConsumption += amount;
                 break;
             case "교육비":
-                categoryConsumption.setEduConsumption(categoryConsumption.getEduConsumption() + amount);
+                eduConsumption += amount;
                 break;
             case "모바일페이":
-                categoryConsumption.setMobileConsumption(categoryConsumption.getMobileConsumption() + amount);
+                mobileConsumption += amount;
                 break;
             default: // 기타
-                categoryConsumption.setOthersConsumption(categoryConsumption.getOthersConsumption() + amount);
+                othersConsumption += amount;
                 break;
         }
-        // CategoryConsumption 저장
+
+        // CategoryConsumption 객체 생성
+        CategoryConsumption categoryConsumption = CategoryConsumption.builder()
+                .userId(userId)
+                .date(currentDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
+                .isLastCategoryConsumption(isLastCategoryConsumption)
+                .entertainmentConsumption(entertainmentConsumption)
+                .cultureConsumption(cultureConsumption)
+                .cafeConsumption(cafeConsumption)
+                .sportsConsumption(sportsConsumption)
+                .foodConsumption(foodConsumption)
+                .accommodationConsumption(accommodationConsumption)
+                .retailConsumption(retailConsumption)
+                .shoppingConsumption(shoppingConsumption)
+                .transferConsumption(transferConsumption)
+                .transportationConsumption(transportationConsumption)
+                .medicalConsumption(medicalConsumption)
+                .insuranceConsumption(insuranceConsumption)
+                .subConsumption(subConsumption)
+                .eduConsumption(eduConsumption)
+                .mobileConsumption(mobileConsumption)
+                .othersConsumption(othersConsumption)
+                .build();
+
+        // CategoryConsumption 객체 저장
         categoryConsumptionRepository.save(categoryConsumption);
     }
 
@@ -437,7 +474,7 @@ public class LogServiceImpl implements LogService{
         log.info("logsListDTO.getUseStoreName() : {}",logsListDTO.getUseStoreName());
 
         // 소비 카테고리 업데이트 (출금 금액으로 업데이트)
-        updateCategoryConsumption(userId, Long.valueOf(logsListDTO.getWithdraw()), logsListDTO.getCategory());
+        updateCategoryConsumption(userId, logsListDTO.getDate(), Long.valueOf(logsListDTO.getWithdraw()), logsListDTO.getCategory());
 
         return logEntity;
     }
