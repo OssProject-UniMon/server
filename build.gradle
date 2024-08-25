@@ -68,9 +68,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-jar {
-	enabled = true
-	archiveFileName = 'server.jar'
+tasks.named('jar') {
+	enabled = false
 }
 
 tasks.named('bootJar') {
