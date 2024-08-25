@@ -1,0 +1,60 @@
+### jar 파일 만들 때 yml 설정 이걸로 변경
+### DB
+#spring:
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: oss-db.cbimeayem48r.ap-northeast-2.rds.amazonaws.com
+#    username: admin
+#    password: ossdatabase2024!
+#
+#  jpa:
+#    properties:
+#      hibernate:
+#        show_sql: true
+#        format_sql: true
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+#    hibernate:
+#      ddl-auto: validate
+#
+## ssl
+#server:
+#  port: 443
+#  ssl:
+#    key-store: keystore.p12
+#    key-store-password: capstone
+#    key-store-type: PKCS12
+#    key-alias: spring
+#
+## chatgpt
+#openai:
+#  model: gpt-3.5-turbo
+#  api:
+#    key: sk-Yag6zSyj5sYi3NJbX91Zun869YjhBe0ApbZhudKJwrT3BlbkFJmA7Q7uBB5WkYJV0T1Ot7rWAmuO_ttZxvhyGRL1O0QA
+#    url: https://api.openai.com/v1/chat/completions
+
+
+
+
+# 로컬에서 테스트 할 때  yml 설정 이걸로 변경
+# ?? DB ???
+spring:
+ datasource:
+   driver-class-name: com.mysql.cj.jdbc.Driver
+   url: jdbc:mysql://localhost:3306/Capstone
+   username: root
+   password: 4625
+ jpa:
+   properties:
+     hibernate:
+       show_sql: true
+       ddl-auto: create
+     properties:
+       hibernate:
+         format_sql: true
+
+# chatgpt
+openai:
+  model: gpt-3.5-turbo
+  api:
+    key: sk-Yag6zSyj5sYi3NJbX91Zun869YjhBe0ApbZhudKJwrT3BlbkFJmA7Q7uBB5WkYJV0T1Ot7rWAmuO_ttZxvhyGRL1O0QA
+    url: https://api.openai.com/v1/chat/completions

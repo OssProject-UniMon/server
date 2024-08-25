@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dongguk.capstone.backend.barobilltest.BarobillAccountTests" tests="11" skipped="0" failures="0" errors="0" timestamp="2024-08-25T10:44:10" hostname="DESKTOP-N3FAG34" time="13.128">
+  <properties/>
+  <testcase name="registBankAccount()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.17"/>
+  <testcase name="updateBankAccount()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.064"/>
+  <testcase name="reRegistBankAccount()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.148"/>
+  <testcase name="getBankAccountLogURL()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.077"/>
+  <testcase name="stopBankAccount()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.026"/>
+  <testcase name="getPeriodBankAccountLogEx()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.097"/>
+  <testcase name="getMonthlyBankAccountLogEx()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.025"/>
+  <testcase name="getBankAccountEx()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.032"/>
+  <testcase name="getBankAccountManagementURL()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.021"/>
+  <testcase name="getDailyBankAccountLogEx()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.019"/>
+  <testcase name="cancelStopBankAccount()" classname="dongguk.capstone.backend.barobilltest.BarobillAccountTests" time="0.035"/>
+  <system-out><![CDATA[-51007
+-10002
+-10002
+-10002
+-10002
+1
+20
+2
+22
+
+0
+신한체
+원신한
+멀티커피(노량
+
+0
+신한체
+원신한
+신세계마트
+
+0
+FB이체
+판교금
+카카오페이
+
+0
+신한체
+원신한
+씨유 동국대기
+
+7890
+신한체
+원신한
+쿠팡(쿠페이)
+
+0
+신한체
+원신한
+쿠팡
+
+0
+신한체
+원신한
+쿠팡(쿠페이)
+
+0
+신한체
+원신한
+신세계마트
+
+0
+신한체
+원신한
+네이버파이낸셜
+
+80000
+신한체
+원신한
+한국철도공사
+
+0
+신한체
+원신한
+한국철도공사
+
+0
+신한체
+원신한
+키오스크_갤럭
+
+0
+신한체
+원신한
+삼삼가마솥돈까
+
+0
+신한체
+원신한
+씨유(CU) 노량
+
+0
+신한체
+원신한
+빨라쪼델쁘레또
+
+0
+신한체
+원신한
+밀숲노량진역점
+
+0
+신한체
+원신한
+지에스25(GS25)
+
+0
+신한체
+원신한
+신세계마트
+
+0
+모바일
+디금센
+정규탁
+
+132987
+타행IB
+(기업)
+정재민
+
+-10008
+110500411959
+https://test.barobill.co.kr/interop/?TK=8eHG8oxV52HX8bmzYKsE9s2f%2fvdmJ3UYDk%2bC%2bC7vQOc0N7ffy5FsUqZqtKgc8x71cJOepJmEgJcGyeDhUGP4950B8ODZvgmY%2fk5g64OYaTm56qRxpQIOHgNyMagMhl6CqGsjx9eQXHWuGF79VHVYEQ%3d%3d&TL=BANKACCOUNTMGT
+-10002
+-10002
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

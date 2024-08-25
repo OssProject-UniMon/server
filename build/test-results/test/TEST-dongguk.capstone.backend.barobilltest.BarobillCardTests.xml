@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dongguk.capstone.backend.barobilltest.BarobillCardTests" tests="18" skipped="0" failures="0" errors="0" timestamp="2024-08-25T10:44:25" hostname="DESKTOP-N3FAG34" time="25.67">
+  <properties/>
+  <testcase name="getMonthlyCardLogEx2()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.292"/>
+  <testcase name="getMonthlyCardLogEx3()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.035"/>
+  <testcase name="registCard()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.138"/>
+  <testcase name="getDailyCardLogEx2()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.086"/>
+  <testcase name="getDailyCardLogEx3()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.062"/>
+  <testcase name="getMonthlyCardLogEx()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.175"/>
+  <testcase name="updateCard()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.033"/>
+  <testcase name="registCardLogMemo()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.022"/>
+  <testcase name="cancelStopCard()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.024"/>
+  <testcase name="getCardLogURL()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.145"/>
+  <testcase name="getPeriodCardLogEx()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.116"/>
+  <testcase name="getCardEx()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.027"/>
+  <testcase name="reRegistCard()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.021"/>
+  <testcase name="getPeriodCardLogEx2()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.04"/>
+  <testcase name="getPeriodCardLogEx3()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.135"/>
+  <testcase name="getCardManagementURL()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.048"/>
+  <testcase name="getDailyCardLogEx()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.021"/>
+  <testcase name="stopCard()" classname="dongguk.capstone.backend.barobilltest.BarobillCardTests" time="0.072"/>
+  <system-out><![CDATA[-10008
+-10008
+-51007
+-10002
+-10002
+-10008
+-10002
+-10002
+-10002
+-10002
+-50101
+-10002
+-10002
+-10008
+1
+20
+2
+23
+GS25서대문점
+1101257119
+편의점
+주식회사에스씨
+2018121515
+커피전문점
+GS25서대문점
+1101257119
+편의점
+킹브루
+1208160844
+기타4
+네이버파이낸셜
+5248601528
+전자상거래(다품목취급)
+지에스25(GS25)
+2171929247
+편의점
+마마부찌
+8630101047
+한식
+(주)케이에프씨코
+2018189723
+패스트푸드
+빨라쪼델쁘레또
+1080926933
+일반대중음식
+멀티커피(노량진
+1922600522
+커피전문점
+씨유동국대기숙
+7041000872
+편의점
+행복한맛집
+2011840916
+한식
+Amazon_AWS
+1138521083
+기타4
+다드림ABM
+7715900546
+생활잡화
+멀티커피(노량진
+1922600522
+커피전문점
+레알짱
+4711400965
+한식
+멀티커피(노량진
+1922600522
+커피전문점
+두마리찜닭두찜
+2015165699
+일반대중음식
+네이버페이
+5248601528
+전자상거래(다품목취급)
+주식회사두잇(Doeat)
+1138521083
+결제대행(PG)
+https://test.barobill.co.kr/interop/?TK=8eHG8oxV52HX8bmzYKsE9s2f%2fvdmJ3UYDk%2bC%2bC7vQOcL31NbuIw34GKyxzqzadNIEl9CGQygW%2b0K2Qo2kxmNikml5ZpXtVQ06EOaEm2PaBE47kIp4j%2b1lX8cmqJG9dWqZNxut1u9TV76QnbCjLgViw%3d%3d&TL=CARDMGT
+-10002
+-51003
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
