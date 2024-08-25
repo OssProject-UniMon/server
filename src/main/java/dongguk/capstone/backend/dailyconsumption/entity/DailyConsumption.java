@@ -27,8 +27,8 @@ public class DailyConsumption {
     @Column(name = "consumption")
     private Long consumption;
 
-    @Column(name = "consumption_change_percentage", precision = 4, scale = 1)
-    private BigDecimal consumptionChangePercentage;
+    @Column(name = "consumption_change_percentage")
+    private int consumptionChangePercentage;
 
     @Column(name = "is_last_consumption")
     private Boolean isLastConsumption;

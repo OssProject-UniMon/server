@@ -93,6 +93,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Scheduled(cron = "0 0 0 * * ?") // 매일 자정에 실행
+    @Transactional
     // 모든 유저에 대해 gpt 조언 업데이트
     public void updateGptAdviceForAllUsers() {
         try {
@@ -118,7 +119,6 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-
     // 기존 nowSummaryPage 메소드
     @Transactional
     public ReportResSummaryDTO nowSummaryPage(Long userId, String date) {
@@ -129,8 +129,12 @@ public class ReportServiceImpl implements ReportService {
             DailyConsumption dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 일별 소비량이 없습니다."));
 
+            log.info("date : " + date);
+
             Report report = reportRepository.findReportByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 해당 월의 레포트가 없습니다."));
+
+            log.info("report : " + report);
 
             // 현재 달의 모든 소비량 데이터 조회
             List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date.substring(0, 6));
@@ -160,28 +164,35 @@ public class ReportServiceImpl implements ReportService {
             Map.Entry<String, Long> highestCategory = nowCategoryTotals.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
                     .orElseThrow(() -> new RuntimeException("No consumption data available"));
+            log.info("highestCategory : " + highestCategory);
 
             // 최저 소비량 카테고리 찾기
             Map.Entry<String, Long> lowestCategory = nowCategoryTotals.entrySet().stream()
                     .min(Map.Entry.comparingByValue())
                     .orElseThrow(() -> new RuntimeException("No consumption data available"));
+            log.info("lowestCategory  : " + lowestCategory);
 
             // 저번 달 같은 날짜 구하기
             String lastMonthDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"))
                     .minusMonths(1)
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            log.info("lastMonthDate  : " + lastMonthDate);
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
             CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElseThrow(() -> new IllegalArgumentException("지난 달의 해당 날짜에 대한 소비량 데이터가 없습니다."));
+                    .orElse(null);
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
             Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
             Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
+            log.info("lastMonthHighestCategoryAmount  : " + lastMonthHighestCategoryAmount);
+            log.info("lastMonthLowestCategoryAmount  : " + lastMonthLowestCategoryAmount);
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
-            double highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
-            double lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
+            Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            log.info("highestCategoryPercentageChange  : " + highestCategoryPercentageChange);
+            log.info("lowestCategoryPercentageChange  : " + lowestCategoryPercentageChange);
 
             String gptAdvice = null;
             // 현재 레포트에서 gptAdvice 가져오기
@@ -196,9 +207,9 @@ public class ReportServiceImpl implements ReportService {
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
                     .gptAdvice(gptAdvice)
                     .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent(highestCategoryPercentageChange)
+                    .highestCategoryPercent(highestCategoryPercentageChange) // null 체크 후 기본값 0 할당
                     .lowestCategory(lowestCategory.getKey())
-                    .lowestCategoryPercent(lowestCategoryPercentageChange)
+                    .lowestCategoryPercent(lowestCategoryPercentageChange) // null 체크 후 기본값 0 할당
                     .build();
 
         } catch (Exception e) {
@@ -210,8 +221,8 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public ReportResSummaryDTO pastSummaryPage(Long userId, String date) {
         try {
-            MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(userId, date.substring(0,6))
-                    .orElseThrow(() -> new IllegalArgumentException("해당되는 유저가 없습니다."));
+            MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(userId, date)
+                    .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 월간 집계 데이터가 없습니다."));
 
             DailyConsumption dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 일별 소비량이 없습니다."));
@@ -219,12 +230,12 @@ public class ReportServiceImpl implements ReportService {
             Report report = reportRepository.findReportByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 해당 월의 레포트가 없습니다."));
 
-            // 지난 달의 모든 소비량 데이터 조회
-            List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date);
+            // 현재 달의 모든 소비량 데이터 조회
+            List<CategoryConsumption> pastMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date);
 
             // 현재 달의 각 카테고리별 총 소비량 계산
             Map<String, Long> pastCategoryTotals = new HashMap<>();
-            for (CategoryConsumption consumption : currentMonthConsumptions) {
+            for (CategoryConsumption consumption : pastMonthConsumptions) {
                 pastCategoryTotals.merge("오락", consumption.getEntertainmentConsumption(), Long::sum);
                 pastCategoryTotals.merge("문화", consumption.getCultureConsumption(), Long::sum);
                 pastCategoryTotals.merge("카페", consumption.getCafeConsumption(), Long::sum);
@@ -260,15 +271,15 @@ public class ReportServiceImpl implements ReportService {
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
             CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElseThrow(() -> new IllegalArgumentException("지난 달의 해당 날짜에 대한 소비량 데이터가 없습니다."));
+                    .orElse(null);
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
             Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
             Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
-            double highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
-            double lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
+            Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
 
             String gptAdvice = null;
             if (dailyConsumption.getIsLastConsumption()) {
@@ -282,9 +293,9 @@ public class ReportServiceImpl implements ReportService {
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
                     .gptAdvice(gptAdvice)
                     .highestCategory(highestCategory.getKey())
-                    .highestCategoryPercent(highestCategoryPercentageChange)
+                    .highestCategoryPercent(highestCategoryPercentageChange) // 기본값 0 할당
                     .lowestCategory(lowestCategory.getKey())
-                    .lowestCategoryPercent(lowestCategoryPercentageChange)
+                    .lowestCategoryPercent(lowestCategoryPercentageChange) // 기본값 0 할당
                     .build();
         } catch (Exception e) {
             log.error("[ReportService] pastSummaryPage error : ", e);
@@ -292,7 +303,13 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+
+
     private Long getCategoryAmountByCategoryName(CategoryConsumption consumption, String categoryName) {
+        if (consumption == null) {
+            return null;
+        }
+
         return switch (categoryName) {
             case "오락" -> consumption.getEntertainmentConsumption();
             case "문화" -> consumption.getCultureConsumption();
@@ -314,10 +331,14 @@ public class ReportServiceImpl implements ReportService {
         };
     }
 
-    private double calculatePercentageChange(Long currentAmount, Long lastMonthAmount) {
-        if (lastMonthAmount == 0) return currentAmount > 0 ? 100.0 : 0.0;
-        return ((double) (currentAmount - lastMonthAmount) / lastMonthAmount) * 100;
+    private Integer calculatePercentageChange(Long currentAmount, Long lastMonthAmount) {
+        if (lastMonthAmount == null || lastMonthAmount==0) {
+            return currentAmount > 0 ? null : 0; // 0으로 나누는 경우, 현재 금액이 양수면 100%, 그렇지 않으면 0%
+        }
+        double percentageChange = ((double) (currentAmount - lastMonthAmount) / lastMonthAmount) * 100;
+        return (int) Math.round(percentageChange); // 소수점을 반올림하여 int로 변환
     }
+
 
     /*-------------------------------- 상세 페이지 -----------------------------------*/
 
@@ -387,14 +408,14 @@ public class ReportServiceImpl implements ReportService {
             Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
-            double highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
-            double lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            int highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
+            int lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
 
             // 카테고리별 변동 % 계산
-            Map<String, Double> categoryChangePercentMap = new HashMap<>();
+            Map<String, Integer> categoryChangePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
                 Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
-                double changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
+                int changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
                 categoryChangePercentMap.put(entry.getKey(), changePercent);
             }
 
@@ -422,10 +443,10 @@ public class ReportServiceImpl implements ReportService {
             categoryBudgetMap.put("기타", report.getOthersBudget());
 
             // 카테고리 사용률 계산
-            Map<String, Double> categoryUsePercentMap = new HashMap<>();
+            Map<String, Integer> categoryUsePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
                 Long budget = categoryBudgetMap.get(entry.getKey());
-                double usePercent = (entry.getValue() / (double) budget) * 100;
+                int usePercent = (int)(entry.getValue() / (double) budget) * 100;
                 categoryUsePercentMap.put(entry.getKey(), usePercent);
             }
 
@@ -495,7 +516,7 @@ public class ReportServiceImpl implements ReportService {
     public ReportResDetailDTO pastDetailPage(Long userId, String date) {
         try {
             // 지난 달의 월간 소비량 데이터 조회
-            MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(userId, date.substring(0, 6))
+            MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저가 없습니다."));
 
             // 지난 달의 모든 소비량 데이터 조회
@@ -546,14 +567,14 @@ public class ReportServiceImpl implements ReportService {
             Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
-            double highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
-            double lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
+            int highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
+            int lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
 
             // 카테고리별 변동 % 계산
-            Map<String, Double> categoryChangePercentMap = new HashMap<>();
+            Map<String, Integer> categoryChangePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : pastCategoryTotals.entrySet()) {
                 Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
-                double changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
+                int changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
                 categoryChangePercentMap.put(entry.getKey(), changePercent);
             }
 
@@ -581,10 +602,10 @@ public class ReportServiceImpl implements ReportService {
             categoryBudgetMap.put("기타", report.getOthersBudget());
 
             // 카테고리 사용률 계산
-            Map<String, Double> categoryUsePercentMap = new HashMap<>();
+            Map<String, Integer> categoryUsePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : pastCategoryTotals.entrySet()) {
                 Long budget = categoryBudgetMap.get(entry.getKey());
-                double usePercent = (entry.getValue() / (double) budget) * 100;
+                int usePercent = (int)(entry.getValue() / (double) budget) * 100;
                 categoryUsePercentMap.put(entry.getKey(), usePercent);
             }
 
@@ -654,7 +675,7 @@ public class ReportServiceImpl implements ReportService {
     /*-------------------------------- 소비 비율 계산 -----------------------------------*/
     @Override
     @Transactional
-    public double totalConsumptionPercent(Long userId, String date){
+    public int totalConsumptionPercent(Long userId, String date){
         // 현재 달 계산
         LocalDate currentMonth = LocalDate.now();
         String stringCurrentMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
@@ -671,50 +692,60 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    @Override
+    // 전달받은 Month(yyyyMM)가 이번 달인 경우에, gpt가 짜준 총 예산과 현재 사용중인 nowTotalConsumption 비교해서
+    // nowTotalConsumption가 몇 %인지 알려주기
     @Transactional
-    public double nowTotalConsumptionPercent(Long userId, String date){
+    public int nowTotalConsumptionPercent(Long userId, String date){
+        log.info("[ReportService] nowTotalConsumptionPercent");
         try{
+            log.info("userId : "+userId);
+            log.info("date : "+date);
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저가 없습니다."));
 
             Report report = reportRepository.findReportByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 레포트가 없습니다."));
+            log.info("report : "+report);
 
             Long nowTotalConsumption = user.getNowTotalConsumption(); // 이번 달의 현재까지 쓴
             Long totalBudget = report.getTotalBudget();
+            log.info("nowTotalConsumption : "+nowTotalConsumption);
+            log.info("totalBudget : "+totalBudget);
 
             if (totalBudget == null || totalBudget == 0) {
                 // 첫 달은 예산이 짜여지지 않아서 프론트에서 처리해줘야 할 듯
-                return 0.0;
+                return 0;
             }
 
-            return (double) nowTotalConsumption / totalBudget * 100.0;
+            return (int) ((double) nowTotalConsumption / totalBudget * 100.0);
         } catch (Exception e){
             log.error("[ReportService] nowTotalConsumptionPercent error : ",e);
             throw new RuntimeException(e);
         }
     }
 
-    @Override
+    // 전달받은 Month(yyyyMM)가 지난 달인 경우에, 그 달의 gpt가 짜준 총 예산과 MonthlyAggregation의 monthlyTotalConsumption 비교해서
+    // monthlyTotalConsumption가 몇 %인지 알려주기
     @Transactional
-    public double pastTotalConsumptionPercent(Long userId, String date){
+    public int pastTotalConsumptionPercent(Long userId, String date){
         try{
+            log.info("userId : "+userId);
+            log.info("date : "+date);
             MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(userId,date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 월별 집계가 없습니다."));
 
             Report report = reportRepository.findReportByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 레포트가 없습니다."));
 
-            Long monthlyTotalConsumption = monthlyAggregation.getMonthlyTotalConsumption(); // 이번 달의 현재까지 쓴
+            Long monthlyTotalConsumption = monthlyAggregation.getMonthlyTotalConsumption();
             Long totalBudget = report.getTotalBudget();
 
             if (totalBudget == null || totalBudget == 0) {
                 // 첫 달은 예산이 짜여지지 않아서 프론트에서 처리해줘야 할 듯
-                return 0.0;
+                return 0;
             }
 
-            return (double) monthlyTotalConsumption / totalBudget * 100.0;
+            return (int) ((double) monthlyTotalConsumption / totalBudget * 100.0);
         } catch (Exception e){
             log.error("[ReportService] pastTotalConsumptionPercent error : ",e);
             throw new RuntimeException(e);
@@ -725,6 +756,8 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public Map<String, Double> categoryConsumptionPercent(Long userId, String date){
         try{
+            log.info("userId : "+userId);
+            log.info("date : "+date);
             CategoryConsumption categoryConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserId(userId)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저가 없습니다."));
 
@@ -751,7 +784,7 @@ public class ReportServiceImpl implements ReportService {
             calculateAndPutPercent(result, "교육비", categoryConsumption.getEduConsumption(), report.getEduBudget());
             calculateAndPutPercent(result, "모바일페이", categoryConsumption.getMobileConsumption(), report.getMobileBudget());
             calculateAndPutPercent(result, "기타", categoryConsumption.getOthersConsumption(), report.getOthersBudget());
-
+            log.info("result : "+result);
             return result;
         } catch (Exception e) {
             log.error("[ReportService] categoryConsumptionPercent error : ", e);

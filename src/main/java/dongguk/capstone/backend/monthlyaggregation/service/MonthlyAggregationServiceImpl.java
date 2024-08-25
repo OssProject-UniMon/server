@@ -24,7 +24,6 @@ public class MonthlyAggregationServiceImpl implements MonthlyAggregationService{
     private final UserRepository userRepository;
     private final CategoryConsumptionRepository categoryConsumptionRepository;
     private final MonthlyAggregationRepository monthlyAggregationRepository;
-    private final DailyConsumptionRepository dailyConsumptionRepository;
 
     // 한 달이 지나면 월별 집계 테이블에 지난 달의 누적 소비량 저장
     // 1. 한 달 마다 마지막 날까지의 누적 총 소비량을 MonthlyAggregation으로 보내고, 0원으로 초기화 하는 로직

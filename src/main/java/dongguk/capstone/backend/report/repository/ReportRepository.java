@@ -8,6 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report,Long> {
-    @Query("select r from Report r where r.userId = :userId and r.date =:date")
+    @Query("select r from Report r where r.userId = :userId and r.date = substring(:date,1,6)")
     Optional<Report> findReportByUserIdAndDate(@Param("userId") Long userId, @Param("date") String date);
 }

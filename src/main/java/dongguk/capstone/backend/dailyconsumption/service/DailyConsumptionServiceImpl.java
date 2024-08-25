@@ -49,7 +49,8 @@ public class DailyConsumptionServiceImpl implements DailyConsumptionService{
             DailyConsumption lastMonthConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(userId, lastMonthSameDayString)
                     .orElse(null);
 
-            BigDecimal consumptionChangePercentage = getBigDecimal(lastMonthConsumption, totalWithdraw);
+            // 소비 변화 비율 계산
+            int consumptionChangePercentage = calculatePercentageChange(totalWithdraw, lastMonthConsumption != null ? lastMonthConsumption.getConsumption() : 0);
 
             // DailyConsumption 객체 생성 및 저장
             DailyConsumption dailyConsumption = DailyConsumption.builder()
@@ -66,18 +67,10 @@ public class DailyConsumptionServiceImpl implements DailyConsumptionService{
         }
     }
 
-    private static BigDecimal getBigDecimal(DailyConsumption lastMonthConsumption, long totalWithdraw) {
-        // 저번 달 소비량
-        long lastMonthTotalWithdraw = lastMonthConsumption != null ? lastMonthConsumption.getConsumption() : 0;
-
-        // 변화율 계산
-        BigDecimal consumptionChangePercentage = BigDecimal.ZERO;
-        if (lastMonthTotalWithdraw > 0) {
-            consumptionChangePercentage = BigDecimal.valueOf(totalWithdraw)
-                    .subtract(BigDecimal.valueOf(lastMonthTotalWithdraw))
-                    .divide(BigDecimal.valueOf(lastMonthTotalWithdraw), 4, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100)); // 비율을 퍼센트로 변환
+    private int calculatePercentageChange(long currentAmount, long lastMonthAmount) {
+        if (lastMonthAmount == 0) {
+            throw new RuntimeException("지난 달의 소비량이 없습니다");
         }
-        return consumptionChangePercentage;
+        return (int) (((double) (currentAmount - lastMonthAmount) / lastMonthAmount) * 100);
     }
 }

@@ -57,7 +57,7 @@ public class HomeServiceImpl implements HomeService {
 
     @Override
     @Transactional
-    public MonitoringResDTO monitoring(Long userId){
+    public MonitoringResDTO monitoring(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당하는 유저가 없습니다."));
 
@@ -66,7 +66,7 @@ public class HomeServiceImpl implements HomeService {
         String stringCurrentMonth = currentMonth.format(dateTimeFormatter);
 
         // gpt가 짜준 총 예산에 비해 소비량이 몇 %인지 계산한 결과 % (이번 달)
-        double totalConsumptionPercent = reportService.totalConsumptionPercent(userId, stringCurrentMonth);
+        int totalConsumptionPercent = reportService.totalConsumptionPercent(userId, stringCurrentMonth);
 
         // gpt가 짜준 카테고리 예산에 비해 몇 %인지 계산한 결과 % (이번 달)
         Map<String, Double> categoryConsumptionPercent = reportService.categoryConsumptionPercent(userId, stringCurrentMonth);
@@ -81,12 +81,14 @@ public class HomeServiceImpl implements HomeService {
 
         // 최대 값을 가지는 카테고리
         String highestCategory = (maxEntry != null) ? maxEntry.getKey() : null;
-        Double highestPercentage = (maxEntry != null) ? maxEntry.getValue() : null;
+
+        int highestCategoryPercent = (maxEntry != null) ? (int) Math.round(maxEntry.getValue()) : 0;
 
         return MonitoringResDTO.builder()
                 .consumption(user.getNowTotalConsumption()) // 지금까지의 소비량
                 .totalConsumptionPercent(totalConsumptionPercent)
-                .highestCategory(Map.of(highestCategory, highestPercentage))
+                .highestCategory(highestCategory)
+                .highestCategoryPercent(highestCategoryPercent)
                 .build();
     }
 }

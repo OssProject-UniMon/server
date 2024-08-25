@@ -11,6 +11,10 @@ java {
 	sourceCompatibility = '17'
 }
 
+jar {
+	enabled = true
+	archiveFileName = 'server.jar'
+}
 
 configurations {
 	compileOnly {
@@ -67,4 +71,8 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('bootJar') {
+	archiveFileName = 'server.jar'
 }

@@ -12,7 +12,7 @@ public interface CategoryConsumptionRepository extends JpaRepository<CategoryCon
     @Query("select cc from CategoryConsumption cc where cc.userId = :userId")
     Optional<CategoryConsumption> findCategoryConsumptionByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT cc FROM CategoryConsumption cc WHERE cc.userId = :userId AND substring(cc.date,1,8) = :date")
+    @Query("SELECT cc FROM CategoryConsumption cc WHERE cc.userId = :userId AND cc.date = :date")
     Optional<CategoryConsumption> findCategoryConsumptionByUserIdAndDay(@Param("userId") Long userId, @Param("date") String date);
 
     @Query("SELECT cc FROM CategoryConsumption cc WHERE cc.userId = :userId AND substring(cc.date,1,6) = :date")

@@ -16,7 +16,11 @@ public class MonitoringResDTO {
     @Schema(description = "사용자의 이번 달 소비량")
     private Long consumption;
     @Schema(description = "사용자의 이번 달 소비량의 예산 대비 %")
-    private double totalConsumptionPercent;
-    @Schema(description = "사용자의 이번 달 최고 소비 카테고리와 그 카테고리 소비량의 예산 대비 %")
-    private Map<String, Double> highestCategory;
+    private int totalConsumptionPercent;
+
+    @Schema(description = "사용자의 이번 달 최고 소비 카테고리")
+    private String highestCategory;
+
+    @Schema(description = "사용자의 이번 달 최고 소비 카테고리의 전 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %")
+    private int highestCategoryPercent;
 }

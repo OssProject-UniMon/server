@@ -18,15 +18,7 @@ public interface ReportService {
     ReportResDetailDTO reportDetailPage(Long userId, String date);
 
     // 총 예산과 비교해서 소비량 % 비교
-    double totalConsumptionPercent(Long userId, String date);
-
-    // 전달받은 Month(yyyyMM)가 이번 달인 경우에, gpt가 짜준 총 예산과 현재 사용중인 nowTotalConsumption 비교해서
-    // nowTotalConsumption가 몇 %인지 알려주기
-    double nowTotalConsumptionPercent(Long userId, String date);
-
-    // 전달받은 Month(yyyyMM)가 지난 달인 경우에, 그 달의 gpt가 짜준 총 예산과 MonthlyAggregation의 monthlyTotalConsumption 비교해서
-    // monthlyTotalConsumption가 몇 %인지 알려주기
-    double pastTotalConsumptionPercent(Long userId, String date);
+    int totalConsumptionPercent(Long userId, String date);
 
     // 전달받은 Month에 맞는 달의 gpt가 짜준 각 카테고리의 예산과 현재 사용중인 각 카테고리의 소비량을 비교해서
     // 각 카테고리별로 소비량이 몇 %인지 알려주기

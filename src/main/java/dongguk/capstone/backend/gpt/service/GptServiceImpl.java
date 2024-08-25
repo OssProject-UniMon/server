@@ -143,27 +143,14 @@ public class GptServiceImpl implements GptService{
         return new GPTRequestDTO(model, prompt);
     }
 
-    public Mono<String> gptAdvice(Long nowTotalConsumption, double consumptionPercent, BigDecimal consumptionChangePercentage){
-        // 소비 변화 비율에 따라 프롬프트를 다르게 설정
-        String changeDescription;
-        if (consumptionChangePercentage.compareTo(BigDecimal.ZERO) > 0) {
-            // 증가한 경우
-            changeDescription = "저번 달의 동일한 날짜의 소비량에 비해 이번 달의 현재까지 쓴 소비량이 "
-                    + consumptionChangePercentage + "% 증가했습니다.";
-        } else if (consumptionChangePercentage.compareTo(BigDecimal.ZERO) < 0) {
-            // 감소한 경우
-            changeDescription = "저번 달의 동일한 날짜의 소비량에 비해 이번 달의 현재까지 쓴 소비량이 "
-                    + consumptionChangePercentage.abs() + "% 감소했습니다.";
-        } else {
-            // 변화가 없는 경우
-            changeDescription = "저번 달의 동일한 날짜의 소비량과 비교했을 때 이번 달의 현재까지 쓴 소비량이 변동이 없습니다.";
-        }
+    public Mono<String> gptAdvice(Long nowTotalConsumption, int consumptionPercent, int consumptionChangePercentage) {
+        String changeDescription = getChangeDescription(consumptionChangePercentage);
 
         String prompt = "이번 달의 현재까지 쓴 소비량은 " + nowTotalConsumption + "원이고, "
                 + "총 소비량에 대한 예산에 비해 이번 달의 현재까지 쓴 소비량은 " + consumptionPercent + "%입니다. "
                 + changeDescription + " "
                 + "위 정보를 바탕으로, 예산 관리에 대한 적절한 조언을 제공해 주세요. "
-                + "예산을 초과하거나 부족한 경우, 어떻게 조정할 수 있는지 구체적인 제안을 부탁드립니다.";
+                + "예산을 초과하거나 부족한 경우, 어떻게 조정할 수 있는지 구체적인 조언을 부탁드립니다.";
 
         GPTRequestDTO gptRequestDTO = new GPTRequestDTO(model, prompt);
 
@@ -173,5 +160,23 @@ public class GptServiceImpl implements GptService{
                 .retrieve()
                 .bodyToMono(GPTResponseDTO.class)
                 .map(response -> response.getChoices().get(0).getMessage().getContent().trim());
+    }
+
+    private static String getChangeDescription(int consumptionChangePercentage) {
+        String changeDescription;
+        // 소비 변화 비율에 따라 프롬프트를 다르게 설정
+        if (consumptionChangePercentage > 0) {
+            // 증가한 경우
+            changeDescription = "저번 달의 동일한 날짜의 소비량에 비해 이번 달의 현재까지 쓴 소비량이 "
+                    + consumptionChangePercentage + "% 증가했습니다.";
+        } else if (consumptionChangePercentage < 0) {
+            // 감소한 경우
+            changeDescription = "저번 달의 동일한 날짜의 소비량에 비해 이번 달의 현재까지 쓴 소비량이 "
+                    + Math.abs(consumptionChangePercentage) + "% 감소했습니다.";
+        } else {
+            // 변화가 없는 경우
+            changeDescription = "저번 달의 동일한 날짜의 소비량과 비교했을 때 이번 달의 현재까지 쓴 소비량이 변동이 없습니다.";
+        }
+        return changeDescription;
     }
 }
