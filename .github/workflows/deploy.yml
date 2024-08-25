@@ -81,4 +81,4 @@ jobs:
           port: 22
           script: |
             screen -dmS javaserver
-            screen -S javaserver -X stuff 'java -jar ~/server.jar > log.txt 2>&1\n'
+            screen -S javaserver -X stuff 'java -jar /home/ubuntu/server.jar > log.txt 2>&1\n'
