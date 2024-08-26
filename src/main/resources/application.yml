@@ -3,7 +3,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: oss-db.cbimeayem48r.ap-northeast-2.rds.amazonaws.com
+    url: jdbc:mysql://oss-db.cbimeayem48r.ap-northeast-2.rds.amazonaws.com:3306/main
     username: root
     password: ossdatabase2024!
 
