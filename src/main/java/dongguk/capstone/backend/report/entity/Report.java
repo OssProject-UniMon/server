@@ -1,5 +1,4 @@
 package dongguk.capstone.backend.report.entity;
-
 import jakarta.persistence.*;
 import lombok.*;
 
