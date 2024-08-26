@@ -63,8 +63,10 @@ public class User {
     private Long nowTotalConsumption;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Account> accounts = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Card> cards = new ArrayList<>();
 }
