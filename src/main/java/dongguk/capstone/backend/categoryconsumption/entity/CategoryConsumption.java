@@ -23,7 +23,7 @@ public class CategoryConsumption {
     private String date;
 
     @Column(name = "is_last_category_consumption", columnDefinition = "TINYINT(1)")
-    private boolean isLastCategoryConsumption;
+    private Boolean isLastCategoryConsumption;
 
     @Column(name = "entertainment_consumption")
     private Long entertainmentConsumption;

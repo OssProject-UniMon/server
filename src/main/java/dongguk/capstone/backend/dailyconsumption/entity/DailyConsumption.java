@@ -30,6 +30,6 @@ public class DailyConsumption {
     @Column(name = "consumption_change_percentage")
     private int consumptionChangePercentage;
 
-    @Column(name = "is_last_consumption")
+    @Column(name = "is_last_consumption", columnDefinition = "TINYINT(1)")
     private Boolean isLastConsumption;
 }
