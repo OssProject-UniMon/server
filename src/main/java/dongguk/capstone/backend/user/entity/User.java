@@ -47,9 +47,6 @@ public class User {
     @Column(name = "scholarship_status")
     private int scholarshipStatus;
 
-    @Column(name = "housing_housing_type", length = 50)
-    private String housingHousingType;
-
     @Column(length = 45)
     private String district;
 
