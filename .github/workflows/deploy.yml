@@ -60,7 +60,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            rm -f /home/ubuntu/server.jar/server.jar
+            rm -f /home/ubuntu/server.jar
 
       - name: Upload new server.jar
         uses: appleboy/scp-action@master
@@ -69,7 +69,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          source: ./server.jar
+          source: ./server.jar/server.jar
           target: /home/ubuntu
 
       - name: Start new Java server in screen session with log
