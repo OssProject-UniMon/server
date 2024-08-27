@@ -67,7 +67,6 @@ public class ReportServiceImpl implements ReportService {
                     .mapToLong(Long::parseLong) // Long::parseLong 대신 Long::longValue 사용
                     .sum();
 
-            // 이 매일매일의 소비량 총 합을 어떻게 저장할 것이지? => user의 now_total_consumption
             user.setNowTotalConsumption(sum);
             userRepository.save(user); // 사용자 정보 저장
         }
@@ -92,30 +91,159 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") // 매일 자정에 실행
+    @Scheduled(cron = "0 0 0 1 * *") // 매월 1일 실행
     @Transactional
-    // 모든 유저에 대해 gpt 조언 업데이트
+    // 모든 유저에 대해 GPT 조언 업데이트
     public void updateGptAdviceForAllUsers() {
         try {
             List<User> users = userRepository.findAll();
             for (User user : users) {
                 LocalDate today = LocalDate.now();
-                String todayDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-                DailyConsumption dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(user.getUserId(), todayDate)
-                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 일별 소비량이 없습니다."));
+                // 지난 달의 마지막 날을 구함
+                LocalDate lastMonthDate = today.minusDays(1); // 매월 1일에서 하루를 빼면 저번 달의 마지막 날
+                String lastMonthLastDay = lastMonthDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+                // 지난 달의 레포트와 일별 소비량 가져오기
+                Report report = reportRepository.findReportByUserIdAndDate(user.getUserId(), lastMonthLastDay)
+                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 지난 달 레포트가 없습니다."));
+
+                DailyConsumption dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(user.getUserId(), lastMonthLastDay)
+                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 지난 달 일별 소비량이 없습니다."));
+
+                // 지난 달의 월별 집계 데이터 가져오기
+                MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(user.getUserId(), lastMonthLastDay.substring(0, 6))
+                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 지난 달 월별 집계 데이터가 없습니다."));
 
                 if (dailyConsumption.getIsLastConsumption()) {
-                    String gptAdvice = gptService.gptAdvice(user.getNowTotalConsumption(), nowTotalConsumptionPercent(user.getUserId(), todayDate), dailyConsumption.getConsumptionChangePercentage()).block();
+                    // 현재 달의 카테고리 소비 데이터 가져오기
+                    List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(user.getUserId(), lastMonthLastDay.substring(0, 6));
 
-                    Report report = reportRepository.findReportByUserIdAndDate(user.getUserId(), todayDate)
-                            .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 해당 월의 레포트가 없습니다."));
+                    // 현재 달의 카테고리별 소비 총액 계산
+                    Map<String, Long> categoryTotals = new HashMap<>();
+                    for (CategoryConsumption consumption : currentMonthConsumptions) {
+                        categoryTotals.merge("오락", consumption.getEntertainmentConsumption(), Long::sum);
+                        categoryTotals.merge("문화", consumption.getCultureConsumption(), Long::sum);
+                        categoryTotals.merge("카페", consumption.getCafeConsumption(), Long::sum);
+                        categoryTotals.merge("스포츠", consumption.getSportsConsumption(), Long::sum);
+                        categoryTotals.merge("음식점", consumption.getFoodConsumption(), Long::sum);
+                        categoryTotals.merge("숙박비", consumption.getAccommodationConsumption(), Long::sum);
+                        categoryTotals.merge("잡화소매", consumption.getRetailConsumption(), Long::sum);
+                        categoryTotals.merge("쇼핑", consumption.getShoppingConsumption(), Long::sum);
+                        categoryTotals.merge("개인이체", consumption.getTransferConsumption(), Long::sum);
+                        categoryTotals.merge("교통비", consumption.getTransportationConsumption(), Long::sum);
+                        categoryTotals.merge("의료비", consumption.getMedicalConsumption(), Long::sum);
+                        categoryTotals.merge("보험비", consumption.getInsuranceConsumption(), Long::sum);
+                        categoryTotals.merge("구독/정기결제", consumption.getSubConsumption(), Long::sum);
+                        categoryTotals.merge("교육비", consumption.getEduConsumption(), Long::sum);
+                        categoryTotals.merge("모바일페이", consumption.getMobileConsumption(), Long::sum);
+                        categoryTotals.merge("기타", consumption.getOthersConsumption(), Long::sum);
+                    }
+
+                    // 최고 소비 카테고리 찾기
+                    Map.Entry<String, Long> highestCategory = categoryTotals.entrySet().stream()
+                            .max(Map.Entry.comparingByValue())
+                            .orElseThrow(() -> new RuntimeException("소비 데이터가 없습니다."));
+
+                    // 최고 소비 카테고리의 지난 달 예산 가져오기
+                    Long lastMonthHighestCategoryBudget = getBudgetByCategoryName(report, highestCategory.getKey());
+
+                    // 최고 소비 카테고리의 지난 달 소비 금액 가져오기
+                    Long lastMonthHighestCategoryAmount = getMonthlyCategoryAmountByCategoryName(monthlyAggregation, highestCategory.getKey());
+
+                    Integer highestCategoryChange = (int) Math.round(((double) (lastMonthHighestCategoryAmount - lastMonthHighestCategoryBudget) / lastMonthHighestCategoryBudget) * 100);
+
+                    // GPT 조언 생성
+                    String gptAdvice = gptService.gptAdvice(
+                            user.getNowTotalConsumption(),
+                            nowTotalConsumptionPercent(user.getUserId(), lastMonthLastDay),
+                            dailyConsumption.getConsumptionChangePercentage(),
+                            highestCategory.getKey(),
+                            highestCategoryChange);
+
+                    // 레포트에 GPT 조언 저장
                     report.setAdvice(gptAdvice);
                     reportRepository.save(report);
                 }
             }
         } catch (Exception e) {
             log.error("[ReportService] updateGptAdviceForAllUsers error : ", e);
+        }
+    }
+
+    // 카테고리 이름에 따라 Report에서 예산 값을 가져오는 헬퍼 메소드
+    private Long getBudgetByCategoryName(Report report, String categoryName) {
+        switch (categoryName) {
+            case "오락":
+                return report.getEntertainmentBudget();
+            case "문화":
+                return report.getCultureBudget();
+            case "카페":
+                return report.getCafeBudget();
+            case "스포츠":
+                return report.getSportsBudget();
+            case "음식점":
+                return report.getFoodBudget();
+            case "숙박비":
+                return report.getAccommodationBudget();
+            case "잡화소매":
+                return report.getRetailBudget();
+            case "쇼핑":
+                return report.getShoppingBudget();
+            case "개인이체":
+                return report.getTransferBudget();
+            case "교통비":
+                return report.getTransportationBudget();
+            case "의료비":
+                return report.getMedicalBudget();
+            case "보험비":
+                return report.getInsuranceBudget();
+            case "구독/정기결제":
+                return report.getSubBudget();
+            case "교육비":
+                return report.getEduBudget();
+            case "모바일페이":
+                return report.getMobileBudget();
+            default:
+                return report.getOthersBudget();
+        }
+    }
+
+    // 카테고리 이름에 따라 MonthlyAggregation의 값을 가져오는 헬퍼 메소드
+    private Long getMonthlyCategoryAmountByCategoryName(MonthlyAggregation monthlyAggregation, String categoryName) {
+        switch (categoryName) {
+            case "오락":
+                return monthlyAggregation.getMonthlyTotalEntertainmentConsumption();
+            case "문화":
+                return monthlyAggregation.getMonthlyTotalCultureConsumption();
+            case "카페":
+                return monthlyAggregation.getMonthlyTotalCafeConsumption();
+            case "스포츠":
+                return monthlyAggregation.getMonthlyTotalSportsConsumption();
+            case "음식점":
+                return monthlyAggregation.getMonthlyTotalFoodConsumption();
+            case "숙박비":
+                return monthlyAggregation.getMonthlyTotalAccommodationConsumption();
+            case "잡화소매":
+                return monthlyAggregation.getMonthlyTotalRetailConsumption();
+            case "쇼핑":
+                return monthlyAggregation.getMonthlyTotalShoppingConsumption();
+            case "개인이체":
+                return monthlyAggregation.getMonthlyTotalTransferConsumption();
+            case "교통비":
+                return monthlyAggregation.getMonthlyTotalTransportationConsumption();
+            case "의료비":
+                return monthlyAggregation.getMonthlyTotalMedicalConsumption();
+            case "보험비":
+                return monthlyAggregation.getMonthlyTotalInsuranceConsumption();
+            case "구독/정기결제":
+                return monthlyAggregation.getMonthlyTotalSubConsumption();
+            case "교육비":
+                return monthlyAggregation.getMonthlyTotalEduConsumption();
+            case "모바일페이":
+                return monthlyAggregation.getMonthlyTotalMobileConsumption();
+            default: // 기타
+                return monthlyAggregation.getMonthlyTotalOthersConsumption();
         }
     }
 
@@ -137,7 +265,7 @@ public class ReportServiceImpl implements ReportService {
             log.info("report : " + report);
 
             // 현재 달의 모든 소비량 데이터 조회
-            List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date.substring(0, 6));
+            List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, date);
 
             // 현재 달의 각 카테고리별 총 소비량 계산
             Map<String, Long> nowCategoryTotals = new HashMap<>();
@@ -179,12 +307,11 @@ public class ReportServiceImpl implements ReportService {
             log.info("lastMonthDate  : " + lastMonthDate);
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
-            CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElse(null);
+            List<CategoryConsumption> lastMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate);
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
-            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
-            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
+            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, highestCategory.getKey());
+            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, lowestCategory.getKey());
             log.info("lastMonthHighestCategoryAmount  : " + lastMonthHighestCategoryAmount);
             log.info("lastMonthLowestCategoryAmount  : " + lastMonthLowestCategoryAmount);
 
@@ -270,17 +397,15 @@ public class ReportServiceImpl implements ReportService {
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
-            CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElse(null);
+            List<CategoryConsumption> lastMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, lastMonthDate);
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
-            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
-            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
+            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, highestCategory.getKey());
+            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, lowestCategory.getKey());
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
             Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
             Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
-
 
             String gptAdvice = null;
             if (dailyConsumption.getIsLastConsumption()) {
@@ -306,7 +431,7 @@ public class ReportServiceImpl implements ReportService {
 
     private Integer calculatePercentageChange(Long currentAmount, Long lastMonthAmount) {
         if (lastMonthAmount == null || lastMonthAmount == 0) {
-            return currentAmount == null ? 0 : 100; // 0% 또는 100%로 반환
+            return currentAmount == null ? 0 : 9999999; // 0% 또는 9999999%로 반환
         }
         long difference = (currentAmount != null ? currentAmount : 0) - lastMonthAmount;
         return (int) Math.round((double) difference / lastMonthAmount * 100);
@@ -335,6 +460,7 @@ public class ReportServiceImpl implements ReportService {
     public ReportResDetailDTO nowDetailPage(Long userId, String date) {
         try {
             log.info("date : " + date);
+
             // 현재 달의 모든 소비량 데이터 조회
             List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date.substring(0, 6));
 
@@ -379,12 +505,11 @@ public class ReportServiceImpl implements ReportService {
             log.info("lastMonthDate : " + lastMonthDate);
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
-            CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElse(null);
+            List<CategoryConsumption> lastMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, lastMonthDate.substring(0, 6));
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
-            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
-            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
+            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, highestCategory.getKey());
+            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, lowestCategory.getKey());
             log.info("lastMonthHighestCategoryAmount  : " + lastMonthHighestCategoryAmount);
             log.info("lastMonthLowestCategoryAmount  : " + lastMonthLowestCategoryAmount);
 
@@ -397,7 +522,7 @@ public class ReportServiceImpl implements ReportService {
             // 카테고리별 변동 % 계산
             Map<String, Integer> categoryChangePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : nowCategoryTotals.entrySet()) {
-                Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
+                Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, entry.getKey());
                 Integer changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
                 categoryChangePercentMap.put(entry.getKey(), changePercent);
             }
@@ -439,55 +564,6 @@ public class ReportServiceImpl implements ReportService {
                 categoryUsePercentMap.put(entry.getKey(), usePercent);
             }
             log.info("categoryUsePercentMap : " + categoryUsePercentMap);
-
-            // 각 카테고리 예산 및 사용 비율 로깅
-            log.info("Entertainment Budget: {}", categoryBudgetMap.get("오락"));
-            log.info("Entertainment Use Percent: {}", categoryUsePercentMap.get("오락"));
-
-            log.info("Culture Budget: {}", categoryBudgetMap.get("문화"));
-            log.info("Culture Use Percent: {}", categoryUsePercentMap.get("문화"));
-
-            log.info("Cafe Budget: {}", categoryBudgetMap.get("카페"));
-            log.info("Cafe Use Percent: {}", categoryUsePercentMap.get("카페"));
-
-            log.info("Sports Budget: {}", categoryBudgetMap.get("스포츠"));
-            log.info("Sports Use Percent: {}", categoryUsePercentMap.get("스포츠"));
-
-            log.info("Food Budget: {}", categoryBudgetMap.get("음식점"));
-            log.info("Food Use Percent: {}", categoryUsePercentMap.get("음식점"));
-
-            log.info("Accommodation Budget: {}", categoryBudgetMap.get("숙박비"));
-            log.info("Accommodation Use Percent: {}", categoryUsePercentMap.get("숙박비"));
-
-            log.info("Retail Budget: {}", categoryBudgetMap.get("잡화소매"));
-            log.info("Retail Use Percent: {}", categoryUsePercentMap.get("잡화소매"));
-
-            log.info("Shopping Budget: {}", categoryBudgetMap.get("쇼핑"));
-            log.info("Shopping Use Percent: {}", categoryUsePercentMap.get("쇼핑"));
-
-            log.info("Transfer Budget: {}", categoryBudgetMap.get("개인이체"));
-            log.info("Transfer Use Percent: {}", categoryUsePercentMap.get("개인이체"));
-
-            log.info("Transportation Budget: {}", categoryBudgetMap.get("교통비"));
-            log.info("Transportation Use Percent: {}", categoryUsePercentMap.get("교통비"));
-
-            log.info("Medical Budget: {}", categoryBudgetMap.get("의료비"));
-            log.info("Medical Use Percent: {}", categoryUsePercentMap.get("의료비"));
-
-            log.info("Insurance Budget: {}", categoryBudgetMap.get("보험비"));
-            log.info("Insurance Use Percent: {}", categoryUsePercentMap.get("보험비"));
-
-            log.info("Subscription Budget: {}", categoryBudgetMap.get("구독/정기결제"));
-            log.info("Subscription Use Percent: {}", categoryUsePercentMap.get("구독/정기결제"));
-
-            log.info("Education Budget: {}", categoryBudgetMap.get("교육비"));
-            log.info("Education Use Percent: {}", categoryUsePercentMap.get("교육비"));
-
-            log.info("Mobile Payment Budget: {}", categoryBudgetMap.get("모바일페이"));
-            log.info("Mobile Payment Use Percent: {}", categoryUsePercentMap.get("모바일페이"));
-
-            log.info("Others Budget: {}", categoryBudgetMap.get("기타"));
-            log.info("Others Use Percent: {}", categoryUsePercentMap.get("기타"));
 
             // ReportResDetailDTO 생성 및 반환
             return ReportResDetailDTO.builder()
@@ -550,31 +626,46 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private Long getCategoryAmountByCategoryName(CategoryConsumption consumption, String categoryName) {
-        if (consumption == null) {
-            return null;
-        }
-
-        return switch (categoryName) {
-            case "오락" -> consumption.getEntertainmentConsumption();
-            case "문화" -> consumption.getCultureConsumption();
-            case "카페" -> consumption.getCafeConsumption();
-            case "스포츠" -> consumption.getSportsConsumption();
-            case "음식점" -> consumption.getFoodConsumption();
-            case "숙박비" -> consumption.getAccommodationConsumption();
-            case "잡화소매" -> consumption.getRetailConsumption();
-            case "쇼핑" -> consumption.getShoppingConsumption();
-            case "개인이체" -> consumption.getTransferConsumption();
-            case "교통비" -> consumption.getTransportationConsumption();
-            case "의료비" -> consumption.getMedicalConsumption();
-            case "보험비" -> consumption.getInsuranceConsumption();
-            case "구독/정기결제" -> consumption.getSubConsumption();
-            case "교육비" -> consumption.getEduConsumption();
-            case "모바일페이" -> consumption.getMobileConsumption();
-            case "기타" -> consumption.getOthersConsumption();
-            default -> throw new IllegalArgumentException("Unknown category name: " + categoryName);
-        };
+    private Long getCategoryAmountByCategoryName(List<CategoryConsumption> consumptions, String categoryName) {
+        return consumptions.stream()
+                .mapToLong(consumption -> {
+                    switch (categoryName) {
+                        case "오락":
+                            return consumption.getEntertainmentConsumption();
+                        case "문화":
+                            return consumption.getCultureConsumption();
+                        case "카페":
+                            return consumption.getCafeConsumption();
+                        case "스포츠":
+                            return consumption.getSportsConsumption();
+                        case "음식점":
+                            return consumption.getFoodConsumption();
+                        case "숙박비":
+                            return consumption.getAccommodationConsumption();
+                        case "잡화소매":
+                            return consumption.getRetailConsumption();
+                        case "쇼핑":
+                            return consumption.getShoppingConsumption();
+                        case "개인이체":
+                            return consumption.getTransferConsumption();
+                        case "교통비":
+                            return consumption.getTransportationConsumption();
+                        case "의료비":
+                            return consumption.getMedicalConsumption();
+                        case "보험비":
+                            return consumption.getInsuranceConsumption();
+                        case "구독/정기결제":
+                            return consumption.getSubConsumption();
+                        case "교육비":
+                            return consumption.getEduConsumption();
+                        case "모바일페이":
+                            return consumption.getMobileConsumption();
+                        default:
+                            return consumption.getOthersConsumption();
+                    }
+                }).sum();
     }
+
 
 
 
@@ -625,12 +716,12 @@ public class ReportServiceImpl implements ReportService {
                     .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
             // 저번 달 같은 날짜의 CategoryConsumption 조회
-            CategoryConsumption lastMonthConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, lastMonthDate)
-                    .orElse(null);
+            List<CategoryConsumption> lastMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, lastMonthDate.substring(0, 6));
+
 
             // 최고/최저 소비 카테고리에 대해 저번 달 같은 날짜의 CategoryConsumption의 소비량 조회
-            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, highestCategory.getKey());
-            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumption, lowestCategory.getKey());
+            Long lastMonthHighestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, highestCategory.getKey());
+            Long lastMonthLowestCategoryAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, lowestCategory.getKey());
 
             // 최고/최저 소비 카테고리 몇 % 증가/감소 계산
             Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
@@ -639,7 +730,7 @@ public class ReportServiceImpl implements ReportService {
             // 카테고리별 변동 % 계산
             Map<String, Integer> categoryChangePercentMap = new HashMap<>();
             for (Map.Entry<String, Long> entry : pastCategoryTotals.entrySet()) {
-                Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumption, entry.getKey());
+                Long lastMonthAmount = getCategoryAmountByCategoryName(lastMonthConsumptions, entry.getKey());
                 Integer changePercent = calculatePercentageChange(entry.getValue(), lastMonthAmount);
                 categoryChangePercentMap.put(entry.getKey(), changePercent);
             }

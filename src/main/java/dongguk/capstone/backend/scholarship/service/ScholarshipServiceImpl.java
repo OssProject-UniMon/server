@@ -34,8 +34,8 @@ import java.util.Optional;
 public class ScholarshipServiceImpl implements ScholarshipService{
     private final UserRepository userRepository;
     private final ScholarshipRepository scholarshipRepository;
-    private static final String SCRAPE_SCHOLASHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scrape_scholarships";
-    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://13.124.16.179:5000/scholarship";
+    private static final String SCRAPE_SCHOLASHIP_FLASK_SERVER_URL = "http://43.202.249.208:5000/scrape_scholarships";
+    private static final String SCHOLARSHIP_FLASK_SERVER_URL = "http://43.202.249.208:5000/scholarship";
 
 
     private final ObjectMapper objectMapper = new ObjectMapper();

@@ -62,8 +62,7 @@ public class LogServiceImpl implements LogService{
 
     private final CategoryConsumptionRepository categoryConsumptionRepository;
 
-    private static final String LEDGER_FLASK_SERVER_URL = "http://13.124.16.179:5000/classify";
-
+    private static final String LEDGER_FLASK_SERVER_URL = "http://43.202.249.208:5000/classify";
 
     public LogServiceImpl(DailyConsumptionService dailyConsumptionService,
                           UserRepository userRepository, AccountRepository accountRepository,
@@ -86,17 +85,14 @@ public class LogServiceImpl implements LogService{
             String transactionDetails = "가게명 : " + useStoreName + " 업종 : " + category;
             log.info("transactionDetails : {}",transactionDetails);
 
-            // Create the JSON payload
             String json = mapper.writeValueAsString(Map.of("transaction_details", transactionDetails));
 
-            // Build the request
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(LEDGER_FLASK_SERVER_URL))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
-            // Send the request and get the response
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
@@ -141,8 +137,16 @@ public class LogServiceImpl implements LogService{
         String startDateString = startDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String endDateString = endDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        Account account = findAccountForUser(user, accounts);
-        Card card = findCardForUser(user, cards);
+        Optional<Account> accountOpt = findAccountForUser(user, accounts);
+        Optional<Card> cardOpt = findCardForUser(user, cards);
+
+        if (accountOpt.isEmpty() || cardOpt.isEmpty()) {
+            log.warn("Account or Card not found for user {}", user.getUserId());
+            return;
+        }
+
+        Account account = accountOpt.get();
+        Card card = cardOpt.get();
 
         try {
             PagedBankAccountLogEx accountLog = barobillApiService.bankAccount.getPeriodBankAccountLogEx(
@@ -160,27 +164,26 @@ public class LogServiceImpl implements LogService{
         }
     }
 
+
     private LocalDate getStartDateForUser(User user, LocalDate today) {
         String lastSavedDate = logRepository.findLastSavedDateByUserId(user.getUserId());
         if (lastSavedDate != null) {
-            return LocalDate.parse(lastSavedDate, DateTimeFormatter.ofPattern("yyyyMMdd")).plusDays(1);
+            return LocalDate.parse(lastSavedDate, DateTimeFormatter.ofPattern("yyyyMMddHHmmss")).plusDays(1);
         } else {
             return today.minusMonths(3);
         }
     }
 
-    private Account findAccountForUser(User user, List<Account> accounts) {
+    private Optional<Account> findAccountForUser(User user, List<Account> accounts) {
         return accounts.stream()
                 .filter(acc -> user.getUserId().equals(acc.getUser().getUserId()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Account not found for user " + user.getUserId()));
+                .findFirst();
     }
 
-    private Card findCardForUser(User user, List<Card> cards) {
+    private Optional<Card> findCardForUser(User user, List<Card> cards) {
         return cards.stream()
                 .filter(c -> user.getUserId().equals(c.getUser().getUserId()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Card not found for user " + user.getUserId()));
+                .findFirst();
     }
 
     private void processLogs(PagedBankAccountLogEx accountLog, PagedCardLogEx cardLog, Long userId) {
@@ -338,17 +341,27 @@ public class LogServiceImpl implements LogService{
         return logsListDTO;
     }
 
-    private void updateCategoryConsumption(Long userId, String date, Long amount, String category) {
-        LocalDate currentDate = LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyyMMdd"));
+    private void updateCategoryConsumption(Long userId, String dateTime, Long amount, String category) {
+        // dateTime을 LocalDateTime으로 파싱
+        LocalDateTime localDateTime = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+        // LocalDate로 변환 (시간 정보는 무시)
+        LocalDate currentDate = localDateTime.toLocalDate();
+
         // 이전 달의 같은 날짜 계산
         LocalDate previousMonthSameDay = currentDate.minusMonths(1);
 
-        // 이전 달의 같은 날짜가 존재하는지 확인
-        Optional<CategoryConsumption> previousMonthCategoryConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, previousMonthSameDay.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        // 날짜를 문자열로 포맷팅
+        String currentDateStr = currentDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String previousMonthDateStr = previousMonthSameDay.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        boolean isLastCategoryConsumption = previousMonthCategoryConsumption.isPresent();
+        // 현재 월의 CategoryConsumption 객체 조회
+        List<CategoryConsumption> currentMonthCategoryConsumptions = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, currentDateStr);
 
-        // 카테고리별 소비량 변수 초기화
+        // 이전 달의 CategoryConsumption 객체 조회
+        List<CategoryConsumption> previousMonthCategoryConsumptions = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, previousMonthDateStr);
+
+        // 카테고리별 소비량 초기화
         long entertainmentConsumption = 0L;
         long cultureConsumption = 0L;
         long cafeConsumption = 0L;
@@ -365,6 +378,26 @@ public class LogServiceImpl implements LogService{
         long eduConsumption = 0L;
         long mobileConsumption = 0L;
         long othersConsumption = 0L;
+
+        // 현재 월의 모든 카테고리 소비량 업데이트
+        for (CategoryConsumption cc : currentMonthCategoryConsumptions) {
+            entertainmentConsumption += cc.getEntertainmentConsumption();
+            cultureConsumption += cc.getCultureConsumption();
+            cafeConsumption += cc.getCafeConsumption();
+            sportsConsumption += cc.getSportsConsumption();
+            foodConsumption += cc.getFoodConsumption();
+            accommodationConsumption += cc.getAccommodationConsumption();
+            retailConsumption += cc.getRetailConsumption();
+            shoppingConsumption += cc.getShoppingConsumption();
+            transferConsumption += cc.getTransferConsumption();
+            transportationConsumption += cc.getTransportationConsumption();
+            medicalConsumption += cc.getMedicalConsumption();
+            insuranceConsumption += cc.getInsuranceConsumption();
+            subConsumption += cc.getSubConsumption();
+            eduConsumption += cc.getEduConsumption();
+            mobileConsumption += cc.getMobileConsumption();
+            othersConsumption += cc.getOthersConsumption();
+        }
 
         // 카테고리에 따라 소비량 업데이트
         switch (category) {
@@ -418,11 +451,11 @@ public class LogServiceImpl implements LogService{
                 break;
         }
 
-        // CategoryConsumption 객체 생성
+        // CategoryConsumption 객체 생성 및 저장
         CategoryConsumption categoryConsumption = CategoryConsumption.builder()
                 .userId(userId)
-                .date(currentDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")))
-                .isLastCategoryConsumption(isLastCategoryConsumption)
+                .date(currentDateStr)
+                .isLastCategoryConsumption(!previousMonthCategoryConsumptions.isEmpty())
                 .entertainmentConsumption(entertainmentConsumption)
                 .cultureConsumption(cultureConsumption)
                 .cafeConsumption(cafeConsumption)

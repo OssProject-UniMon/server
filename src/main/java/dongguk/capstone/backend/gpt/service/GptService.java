@@ -12,5 +12,5 @@ public interface GptService {
     // => gpt에게 이에 맞게 총 예산과, 각각의 카테고리에 맞는 예산을 달라고 하기
     void gptBudget();
 
-    Mono<String> gptAdvice(Long nowTotalConsumption, int consumptionPercent, int consumptionChangePercentage);
+    String gptAdvice(Long nowTotalConsumption, int consumptionPercent, int consumptionChangePercentage, String highestCategoryKey, Integer highestCategoryPercent);
 }

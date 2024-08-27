@@ -9,12 +9,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/log")
+@Slf4j
 public class LogApiController {
     private final LogService logService;
     private AccountReqRegistDTO accountReqRegistDTO; // 필드변수는 인스턴스 변수(클래스의 각 인스턴스마다 다른 값을 가지는 변수)이며, 그 클래스의 모든 메소드에서 사용 가능하다
@@ -62,6 +64,7 @@ public class LogApiController {
 
     @PostMapping("/test")
     public LogsResDTO test(@RequestParam("userId") Long userId){
+        log.info("userId : "+userId);
         logService.fetchAndSaveLogs(); // 데베에 거래 내역 들어감
         return logService.log(userId);
     }

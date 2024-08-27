@@ -67,10 +67,11 @@ public class DailyConsumptionServiceImpl implements DailyConsumptionService{
         }
     }
 
-    private int calculatePercentageChange(long currentAmount, long lastMonthAmount) {
-        if (lastMonthAmount == 0) {
-            throw new RuntimeException("지난 달의 소비량이 없습니다");
+    private Integer calculatePercentageChange(Long currentAmount, Long lastMonthAmount) {
+        if (lastMonthAmount == null || lastMonthAmount == 0) {
+            return currentAmount == null ? 0 : 9999999; // 0% 또는 9999999%로 반환
         }
-        return (int) (((double) (currentAmount - lastMonthAmount) / lastMonthAmount) * 100);
+        long difference = (currentAmount != null ? currentAmount : 0) - lastMonthAmount;
+        return (int) Math.round((double) difference / lastMonthAmount * 100);
     }
 }
