@@ -66,8 +66,8 @@ jobs:
         run: |
           echo "${{ secrets.EC2_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./server.jar ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/server.jar
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; nohup java -jar /home/${{ secrets.EC2_USERNAME }}/server.jar > /home/${{ secrets.EC2_USERNAME }}/app.log 2>&1 &"
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; screen -dmS javaserver java -jar /home/${{ secrets.EC2_USER }}/server.jar"
           rm -f private_key.pem
 
       - name: Monitor server.jar execution and send log on failure
