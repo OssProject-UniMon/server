@@ -70,7 +70,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           source: ./server.jar/server.jar
-          target: /home/ubuntu
+          target: /home/ubuntu/server.jar
 
       - name: Start new Java server in screen session with log
         uses: appleboy/ssh-action@master
