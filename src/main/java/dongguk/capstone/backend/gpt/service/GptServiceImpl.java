@@ -40,7 +40,9 @@ public class GptServiceImpl implements GptService{
     private final ReportRepository reportRepository;
     private final MonthlyAggregationRepository monthlyAggregationRepository;
     private static final String BUDGET_FLASK_SERVER_URL = "http://43.202.249.208:5000/budget";
+//    private static final String BUDGET_FLASK_SERVER_URL = "http://127.0.0.1:5000/budget";
     private static final String ADVICE_FLASK_SERVER_URL = "http://43.202.249.208:5000/advice";
+//    private static final String ADVICE_FLASK_SERVER_URL = "http://127.0.0.1:5000/advice";
 
 
 
@@ -86,6 +88,7 @@ public class GptServiceImpl implements GptService{
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json))
                         .build();
+                log.info("request : "+request);
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -102,6 +105,7 @@ public class GptServiceImpl implements GptService{
 
                     String[] lines = responseText.split("\n");
                     for (String line : lines) {
+                        log.info("line :"+line);
                         if (line.contains("총 예산")) {
                             totalBudget = Long.parseLong(line.replaceAll("[^0-9]", "").trim());
                         } else if (line.contains(":")) {
@@ -178,9 +182,8 @@ public class GptServiceImpl implements GptService{
                 + "총 소비량에 대한 예산에 비해 이번 달의 현재까지 쓴 소비량은 " + consumptionPercent + "%입니다. "
                 + changeDescription + " "
                 + "그리고 가장 많은 소비 카테고리는 " + highestCategoryKey + "이고, "
-                + "그 카테고리의 소비량은 예산 대비 " + highestCategoryPercent + "% 입니다."
-                + "위 정보를 바탕으로, 예산 관리에 대한 적절한 조언을 제공해 주세요. "
-                + "예산을 초과하거나 부족한 경우, 어떻게 조정할 수 있는지에 대해 한 문단으로 정리해서 구체적인 조언을 부드러운 말투로 제공해 주세요.";
+                + "그 카테고리의 소비량은 예산 대비 " + highestCategoryPercent + "%";
+        log.info("adviceDetails : "+adviceDetails);
 
         try {
             String json = mapper.writeValueAsString(Map.of("advice_details", adviceDetails));
@@ -190,6 +193,7 @@ public class GptServiceImpl implements GptService{
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
+            log.info("request : "+request);
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
