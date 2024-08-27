@@ -72,7 +72,7 @@ jobs:
           source: ./server.jar
           target: /home/ubuntu
 
-      - name: Start new Java server in screen session
+      - name: Start new Java server in screen session with log
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -80,9 +80,9 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            screen -dmS javaserver java -jar /home/ubuntu/server.jar/server.jar
+            screen -dmS javaserver bash -c 'java -jar /home/ubuntu/server.jar/server.jar > /home/ubuntu/server.log 2>&1'
 
-      - name: Monitor server.jar execution
+      - name: Monitor server.jar execution and send log on failure
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -92,7 +92,6 @@ jobs:
           script: |
             sleep 30
             if ! screen -list | grep -q "javaserver"; then
-              curl -H "Content-Type: application/json" \
-                   -d "{\"content\": \"Server jar process has stopped unexpectedly.\"}" \
-                   ${{ secrets.DISCORD_WEBHOOK_URL }}
+              curl -F "file=@/home/ubuntu/server.log" -F "content=Server jar process has stopped unexpectedly. Here is the log file." \
+              ${{ secrets.DISCORD_WEBHOOK_URL }}
             fi
