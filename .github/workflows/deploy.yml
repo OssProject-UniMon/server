@@ -70,8 +70,8 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ./server.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/server.jar
-
+            ls -l /home/runner/work/${{ github.repository }}/${{ github.repository }}/server.jar
+            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa /home/runner/work/${{ github.repository }}/${{ github.repository }}/server.jar ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/server.jar
 
       - name: Start new Java server in screen session with log
         uses: appleboy/ssh-action@master
