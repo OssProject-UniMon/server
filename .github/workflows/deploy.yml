@@ -80,7 +80,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            screen -dmS javaserver bash -c 'java -jar /home/ubuntu/server.jar/server.jar > /home/ubuntu/server.log 2>&1'
+            screen -dmS javaserver bash -c 'sudo java -jar /home/ubuntu/server.jar > /home/ubuntu/server.log 2>&1'
 
       - name: Monitor server.jar execution and send log on failure
         uses: appleboy/ssh-action@master
