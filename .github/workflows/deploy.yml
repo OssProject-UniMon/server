@@ -36,12 +36,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: server-jar
-          path: ./server.jar
-
       - name: Stop existing Java process
         uses: appleboy/ssh-action@master
         with:
@@ -62,18 +56,19 @@ jobs:
           script: |
             rm -f /home/ubuntu/server.jar
 
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: server-jar
+          path: build/libs/
+
       - name: Deploy to EC2
         run: |
           echo "${{ secrets.EC2_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-          cp server.jar server_copy.jar  # 파일 복사
-          ls -l ./server_copy.jar  # 복사된 파일이 존재하는지 확인
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./server_copy.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; screen -dmS javaserver java -jar /home/${{ secrets.EC2_USER }}/server.jar"
-          rm -f private_key.pem server_copy.jar  # 임시 파일 삭제
-
-
-
+          scp -i private_key.pem -o StrictHostKeyChecking=no build/libs/server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; nohup java -jar /home/${{ secrets.EC2_USER }}/server.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &"
+          rm -f private_key.pem
 
       - name: Monitor server.jar execution and send log on failure
         uses: appleboy/ssh-action@master
@@ -84,7 +79,7 @@ jobs:
           port: 22
           script: |
             sleep 30
-            if ! pgrep -f "java -jar /home/${{ secrets.EC2_USERNAME }}/server.jar" > /dev/null; then
-              curl -F "file=@/home/${{ secrets.EC2_USERNAME }}/app.log" -F "content=Server jar process has stopped unexpectedly. Here is the log file." \
+            if ! pgrep -f "java -jar /home/${{ secrets.EC2_USER }}/server.jar" > /dev/null; then
+              curl -F "file=@/home/${{ secrets.EC2_USER }}/app.log" -F "content=Server jar process has stopped unexpectedly. Here is the log file." \
               ${{ secrets.DISCORD_WEBHOOK_URL }}
             fi
