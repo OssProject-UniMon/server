@@ -28,14 +28,20 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: server-jar
-          path: build/libs/server.jar
+          name: unimon-jar
+          path: build/libs/unimon.jar
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: unimon-jar
+          path: ./unimon.jar
+
       - name: Stop existing Java process
         uses: appleboy/ssh-action@master
         with:
@@ -46,7 +52,7 @@ jobs:
           script: |
             screen -S javaserver -X quit || true
 
-      - name: Remove old server.jar
+      - name: Remove old unimon.jar
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -54,23 +60,19 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            rm -f /home/ubuntu/server.jar
+            rm -f /home/ubuntu/unimon.jar
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v2
+      - name: Upload new unimon.jar
+        uses: appleboy/scp-action@master
         with:
-          name: server-jar
-          path: build/libs/
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          source: ./unimon.jar
+          target: /home/ubuntu/unimon.jar
 
-      - name: Deploy to EC2
-        run: |
-          echo "${{ secrets.EC2_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-          scp -i private_key.pem -o StrictHostKeyChecking=no build/libs/server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; nohup java -jar /home/${{ secrets.EC2_USER }}/server.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &"
-          rm -f private_key.pem
-
-      - name: Monitor server.jar execution and send log on failure
+      - name: Start new Java server in screen session
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -78,8 +80,5 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            sleep 30
-            if ! pgrep -f "java -jar /home/${{ secrets.EC2_USER }}/server.jar" > /dev/null; then
-              curl -F "file=@/home/${{ secrets.EC2_USER }}/app.log" -F "content=Server jar process has stopped unexpectedly. Here is the log file." \
-              ${{ secrets.DISCORD_WEBHOOK_URL }}
-            fi
+            screen -dmS javaserver
+            screen -S javaserver -X stuff 'java -jar /home/ubuntu/unimon.jar > /home/ubuntu/log.txt 2>&1\n'
