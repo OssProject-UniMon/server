@@ -66,11 +66,11 @@ jobs:
         run: |
           echo "${{ secrets.EC2_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-          unzip server-jar.zip -d ./unzipped/  # 다운로드된 아티팩트의 압축 해제
-          ls -l ./unzipped/server.jar  # 압축 해제된 파일이 존재하는지 확인
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./unzipped/server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
+          ls -l ./server.jar  # 파일이 존재하는지 확인
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; screen -dmS javaserver java -jar /home/${{ secrets.EC2_USER }}/server.jar"
           rm -f private_key.pem
+
 
 
       - name: Monitor server.jar execution and send log on failure
