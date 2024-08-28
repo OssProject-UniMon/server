@@ -66,10 +66,12 @@ jobs:
         run: |
           echo "${{ secrets.EC2_KEY }}" > private_key.pem
           chmod 600 private_key.pem
-          ls -l ./server.jar  # 파일이 존재하는지 확인
-          scp -i private_key.pem -o StrictHostKeyChecking=no ./server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
+          cp server.jar server_copy.jar  # 파일 복사
+          ls -l ./server_copy.jar  # 복사된 파일이 존재하는지 확인
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./server_copy.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; screen -dmS javaserver java -jar /home/${{ secrets.EC2_USER }}/server.jar"
-          rm -f private_key.pem
+          rm -f private_key.pem server_copy.jar  # 임시 파일 삭제
+
 
 
 
