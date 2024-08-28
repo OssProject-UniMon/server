@@ -60,27 +60,18 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           script: |
-            rm -f /home/ubuntu/server.jar/server.jar
+            rm -f /home/ubuntu/server.jar
 
-      - name: Upload new server.jar
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: ./server.jar
-          target: /home/ubuntu
+      - name: Deploy to EC2
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+          unzip server-jar.zip -d ./unzipped/  # 다운로드된 아티팩트의 압축 해제
+          ls -l ./unzipped/server.jar  # 압축 해제된 파일이 존재하는지 확인
+          scp -i private_key.pem -o StrictHostKeyChecking=no ./unzipped/server.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/server.jar
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "pgrep java | xargs kill -9; screen -dmS javaserver java -jar /home/${{ secrets.EC2_USER }}/server.jar"
+          rm -f private_key.pem
 
-      - name: Start new Java server in screen session with log
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          script: |
-            screen -dmS javaserver bash -c 'java -jar /home/ubuntu/server.jar/server.jar > /home/ubuntu/server.log 2>&1'
 
       - name: Monitor server.jar execution and send log on failure
         uses: appleboy/ssh-action@master
@@ -91,7 +82,7 @@ jobs:
           port: 22
           script: |
             sleep 30
-            if ! screen -list | grep -q "javaserver"; then
-              curl -F "file=@/home/ubuntu/server.log" -F "content=Server jar process has stopped unexpectedly. Here is the log file." \
+            if ! pgrep -f "java -jar /home/${{ secrets.EC2_USERNAME }}/server.jar" > /dev/null; then
+              curl -F "file=@/home/${{ secrets.EC2_USERNAME }}/app.log" -F "content=Server jar process has stopped unexpectedly. Here is the log file." \
               ${{ secrets.DISCORD_WEBHOOK_URL }}
             fi
