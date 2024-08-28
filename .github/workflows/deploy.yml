@@ -70,7 +70,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           port: 22
           source: ./unimon.jar
-          target: /home/ubuntu/unimon.jar
+          target: /home/ubuntu
 
       - name: Start new Java server in screen session
         uses: appleboy/ssh-action@master
