@@ -39,8 +39,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: unimon-jar
-          path: build/libs/
+          name: unimon
+          path: ./build/libs/
+
+      - name: Verify unimon.jar file exists
+        run: ls -l ./build/libs/unimon.jar
 
       - name: Stop existing Java process
         uses: appleboy/ssh-action@master
@@ -69,8 +72,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           port: 22
-          source: ./unimon.jar
-          target: /home/ubuntu
+          source: ./build/libs/unimon.jar
+          target: /home/ubuntu/unimon.jar
 
       - name: Start new Java server in screen session
         uses: appleboy/ssh-action@master
