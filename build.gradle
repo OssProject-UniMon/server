@@ -13,7 +13,7 @@ java {
 
 jar {
 	enabled = true
-	archiveFileName = 'server.jar'
+	archiveFileName = 'unimon.jar'
 }
 
 configurations {
@@ -81,5 +81,5 @@ tasks.named('jar') {
 }
 
 tasks.named('bootJar') {
-	archiveFileName = 'server.jar'
+	archiveFileName = 'unimon.jar'
 }
