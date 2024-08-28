@@ -49,10 +49,6 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class LogServiceImpl implements LogService{
-
-    @Value("${openai.api.key}")
-    private String apikey; // 연동할 chat gpt assistant api의 api key
-
     private final DailyConsumptionService dailyConsumptionService;
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;

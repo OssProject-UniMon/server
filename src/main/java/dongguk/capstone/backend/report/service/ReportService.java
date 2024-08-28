@@ -24,8 +24,5 @@ public interface ReportService {
     // 각 카테고리별로 소비량이 몇 %인지 알려주기
     Map<String, Double> categoryConsumptionPercent(Long userId, String date);
 
-    // yyyyMMdd를 전달받아 그 저번 달의 동일한 날짜와 소비량 비교하여 몇 %인지 알려주기
-
-
-    // 조언은 어디에?
+    void updateGptAdviceForAllUsers();
 }

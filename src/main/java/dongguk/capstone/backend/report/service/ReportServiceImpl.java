@@ -91,80 +91,100 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    @Scheduled(cron = "0 0 0 1 * *") // 매월 1일 실행
+    @Scheduled(cron = "0 0 0 * * *") // 매일 자정에 실행
     @Transactional
     // 모든 유저에 대해 GPT 조언 업데이트
     public void updateGptAdviceForAllUsers() {
+        log.info("[ReportServiceImpl] updateGptAdviceForAllUsers");
         try {
             List<User> users = userRepository.findAll();
             for (User user : users) {
+                log.info("userId : "+user.getUserId());
+
                 LocalDate today = LocalDate.now();
+                String stringToday= today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-                // 지난 달의 마지막 날을 구함
-                LocalDate lastMonthDate = today.minusDays(1); // 매월 1일에서 하루를 빼면 저번 달의 마지막 날
-                String lastMonthLastDay = lastMonthDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                // 어제의 날짜를 구함
+                LocalDate yesterday = today.minusDays(1);
+                String stringYesterday = yesterday.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-                // 지난 달의 레포트와 일별 소비량 가져오기
-                Report report = reportRepository.findReportByUserIdAndDate(user.getUserId(), lastMonthLastDay)
-                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 지난 달 레포트가 없습니다."));
-
-                DailyConsumption dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(user.getUserId(), lastMonthLastDay)
-                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 지난 달 일별 소비량이 없습니다."));
-
-                // 지난 달의 월별 집계 데이터 가져오기
-                MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(user.getUserId(), lastMonthLastDay.substring(0, 6))
-                        .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 지난 달 월별 집계 데이터가 없습니다."));
-
-                if (dailyConsumption.getIsLastConsumption()) {
-                    // 현재 달의 카테고리 소비 데이터 가져오기
-                    List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(user.getUserId(), lastMonthLastDay.substring(0, 6));
-
-                    // 현재 달의 카테고리별 소비 총액 계산
-                    Map<String, Long> categoryTotals = new HashMap<>();
-                    for (CategoryConsumption consumption : currentMonthConsumptions) {
-                        categoryTotals.merge("오락", consumption.getEntertainmentConsumption(), Long::sum);
-                        categoryTotals.merge("문화", consumption.getCultureConsumption(), Long::sum);
-                        categoryTotals.merge("카페", consumption.getCafeConsumption(), Long::sum);
-                        categoryTotals.merge("스포츠", consumption.getSportsConsumption(), Long::sum);
-                        categoryTotals.merge("음식점", consumption.getFoodConsumption(), Long::sum);
-                        categoryTotals.merge("숙박비", consumption.getAccommodationConsumption(), Long::sum);
-                        categoryTotals.merge("잡화소매", consumption.getRetailConsumption(), Long::sum);
-                        categoryTotals.merge("쇼핑", consumption.getShoppingConsumption(), Long::sum);
-                        categoryTotals.merge("개인이체", consumption.getTransferConsumption(), Long::sum);
-                        categoryTotals.merge("교통비", consumption.getTransportationConsumption(), Long::sum);
-                        categoryTotals.merge("의료비", consumption.getMedicalConsumption(), Long::sum);
-                        categoryTotals.merge("보험비", consumption.getInsuranceConsumption(), Long::sum);
-                        categoryTotals.merge("구독/정기결제", consumption.getSubConsumption(), Long::sum);
-                        categoryTotals.merge("교육비", consumption.getEduConsumption(), Long::sum);
-                        categoryTotals.merge("모바일페이", consumption.getMobileConsumption(), Long::sum);
-                        categoryTotals.merge("기타", consumption.getOthersConsumption(), Long::sum);
-                    }
-
-                    // 최고 소비 카테고리 찾기
-                    Map.Entry<String, Long> highestCategory = categoryTotals.entrySet().stream()
-                            .max(Map.Entry.comparingByValue())
-                            .orElseThrow(() -> new RuntimeException("소비 데이터가 없습니다."));
-
-                    // 최고 소비 카테고리의 지난 달 예산 가져오기
-                    Long lastMonthHighestCategoryBudget = getBudgetByCategoryName(report, highestCategory.getKey());
-
-                    // 최고 소비 카테고리의 지난 달 소비 금액 가져오기
-                    Long lastMonthHighestCategoryAmount = getMonthlyCategoryAmountByCategoryName(monthlyAggregation, highestCategory.getKey());
-
-                    Integer highestCategoryChange = (int) Math.round(((double) (lastMonthHighestCategoryAmount - lastMonthHighestCategoryBudget) / lastMonthHighestCategoryBudget) * 100);
-
-                    // GPT 조언 생성
-                    String gptAdvice = gptService.gptAdvice(
-                            user.getNowTotalConsumption(),
-                            nowTotalConsumptionPercent(user.getUserId(), lastMonthLastDay),
-                            dailyConsumption.getConsumptionChangePercentage(),
-                            highestCategory.getKey(),
-                            highestCategoryChange);
-
-                    // 레포트에 GPT 조언 저장
-                    report.setAdvice(gptAdvice);
-                    reportRepository.save(report);
+                Report report;
+                try {
+                    report = reportRepository.findReportByUserIdAndDate(user.getUserId(), stringToday)
+                            .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 이번 달 레포트가 없습니다."));
+                } catch (IllegalArgumentException e) {
+                    log.warn("해당되는 유저의 이번 달 레포트가 없습니다. userId: " + user.getUserId());
+                    continue;
                 }
+                log.info("report : " + report);
+
+                DailyConsumption dailyConsumption;
+                try {
+                    dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(user.getUserId(), stringYesterday)
+                            .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 하루 전의 일별 소비량이 없습니다."));
+                } catch (IllegalArgumentException e) {
+                    log.warn("해당되는 유저의 하루 전의 일별 소비량이 없습니다. userId: " + user.getUserId());
+                    continue;
+                }
+                // 현재 달의 카테고리 소비 데이터 가져오기
+                List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(user.getUserId(), stringToday.substring(0, 6));
+
+                // 현재 달의 카테고리별 소비 총액 계산
+                Map<String, Long> categoryTotals = new HashMap<>();
+                for (CategoryConsumption consumption : currentMonthConsumptions) {
+                    categoryTotals.merge("오락", consumption.getEntertainmentConsumption(), Long::sum);
+                    categoryTotals.merge("문화", consumption.getCultureConsumption(), Long::sum);
+                    categoryTotals.merge("카페", consumption.getCafeConsumption(), Long::sum);
+                    categoryTotals.merge("스포츠", consumption.getSportsConsumption(), Long::sum);
+                    categoryTotals.merge("음식점", consumption.getFoodConsumption(), Long::sum);
+                    categoryTotals.merge("숙박비", consumption.getAccommodationConsumption(), Long::sum);
+                    categoryTotals.merge("잡화소매", consumption.getRetailConsumption(), Long::sum);
+                    categoryTotals.merge("쇼핑", consumption.getShoppingConsumption(), Long::sum);
+                    categoryTotals.merge("개인이체", consumption.getTransferConsumption(), Long::sum);
+                    categoryTotals.merge("교통비", consumption.getTransportationConsumption(), Long::sum);
+                    categoryTotals.merge("의료비", consumption.getMedicalConsumption(), Long::sum);
+                    categoryTotals.merge("보험비", consumption.getInsuranceConsumption(), Long::sum);
+                    categoryTotals.merge("구독/정기결제", consumption.getSubConsumption(), Long::sum);
+                    categoryTotals.merge("교육비", consumption.getEduConsumption(), Long::sum);
+                    categoryTotals.merge("모바일페이", consumption.getMobileConsumption(), Long::sum);
+                    categoryTotals.merge("기타", consumption.getOthersConsumption(), Long::sum);
+                }
+
+                // 최고 소비 카테고리 찾기
+                Map.Entry<String, Long> highestCategory = categoryTotals.entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .orElseThrow(() -> new RuntimeException("소비 데이터가 없습니다."));
+
+                // 최고 소비 카테고리의 이번 달 예산 가져오기
+                Long highestCategoryBudget = getBudgetByCategoryName(report, highestCategory.getKey());
+
+                // 최고 소비 카테고리의 이번 달 소비 총액
+                Long highestCategoryConsumption = highestCategory.getValue();
+
+                int highestCategoryPercent;
+                if (highestCategoryBudget != null && highestCategoryBudget > 0) {
+                    highestCategoryPercent = (int) Math.round(((double) highestCategoryConsumption / highestCategoryBudget) * 100);
+                } else {
+                    highestCategoryPercent = 0;
+                }
+
+                log.info("highestCategoryChange : "+highestCategoryPercent);
+
+                // GPT 조언 생성
+                String gptAdvice = gptService.gptAdvice(
+                        user.getNowTotalConsumption(),
+                        nowTotalConsumptionPercent(user.getUserId(), stringToday),
+                        dailyConsumption.getConsumptionChangePercentage(),
+                        highestCategory.getKey(),
+                        highestCategoryPercent);
+
+                log.info("gptAdvice : "+gptAdvice);
+
+                log.info("user.getNowTotalConsumption() : "+user.getNowTotalConsumption());
+
+                // 레포트에 GPT 조언 저장
+                report.setAdvice(gptAdvice);
+                reportRepository.save(report);
             }
         } catch (Exception e) {
             log.error("[ReportService] updateGptAdviceForAllUsers error : ", e);
@@ -173,6 +193,9 @@ public class ReportServiceImpl implements ReportService {
 
     // 카테고리 이름에 따라 Report에서 예산 값을 가져오는 헬퍼 메소드
     private Long getBudgetByCategoryName(Report report, String categoryName) {
+        if(report == null){
+            return null;
+        }
         switch (categoryName) {
             case "오락":
                 return report.getEntertainmentBudget();

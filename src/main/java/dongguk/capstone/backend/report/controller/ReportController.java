@@ -48,6 +48,7 @@ public class ReportController {
     @PostMapping("/test")
     public ResponseEntity<String> test(){
         gptService.gptBudget(); // 데베에 예산 들어감
+        reportService.updateGptAdviceForAllUsers();
         // 현재 gptAdvice에 설정된 값들은 임시 값이고, 작동이 잘 된다면 test api에서는 gpt 조언이 나와야 함
         return ResponseEntity.ok(gptService.gptAdvice(200000L, 60, 30, "카페", 70));
     }

@@ -32,34 +32,14 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-//@RequiredArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class GptServiceImpl implements GptService{
-    private final WebClient gptWebClient;
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
     private final MonthlyAggregationRepository monthlyAggregationRepository;
     private static final String BUDGET_FLASK_SERVER_URL = "http://43.202.249.208:5000/budget";
-//    private static final String BUDGET_FLASK_SERVER_URL = "http://127.0.0.1:5000/budget";
     private static final String ADVICE_FLASK_SERVER_URL = "http://43.202.249.208:5000/advice";
-//    private static final String ADVICE_FLASK_SERVER_URL = "http://127.0.0.1:5000/advice";
-
-
-
-    @Value("${openai.model}")
-    private String model;
-
-    @Value("${openai.api.url}")
-    private String apiUrl;
-
-    public GptServiceImpl(@Qualifier("gptWebClient") WebClient gptWebClient,
-                          UserRepository userRepository, ReportRepository reportRepository,
-                          MonthlyAggregationRepository monthlyAggregationRepository) {
-        this.gptWebClient = gptWebClient;
-        this.userRepository = userRepository;
-        this.reportRepository = reportRepository;
-        this.monthlyAggregationRepository = monthlyAggregationRepository;
-    }
 
     @Override
     @Transactional
@@ -71,7 +51,10 @@ public class GptServiceImpl implements GptService{
         ObjectMapper mapper = new ObjectMapper();
 
         for (User user : userList) {
-            LocalDate lastMonth = LocalDate.now().minusMonths(1); // 저번 달을 기준으로 예산을 구성하기 위해 1달을 뺌
+            LocalDate currentMonth = LocalDate.now();
+            String stringCurrentMonth = currentMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
+
+            LocalDate lastMonth = currentMonth.minusMonths(1); // 저번 달을 기준으로 예산을 구성하기 위해 1달을 뺌
             String stringLastMonth = lastMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
 
             MonthlyAggregation monthlyAggregation = monthlyAggregationRepository.findMonthlyAggregationByUserIdAndMonth(user.getUserId(), stringLastMonth)
@@ -120,7 +103,7 @@ public class GptServiceImpl implements GptService{
 
                     Report report = Report.builder()
                             .userId(user.getUserId())
-                            .date(stringLastMonth)
+                            .date(stringCurrentMonth)
                             .totalBudget(totalBudget)
                             .entertainmentBudget(budgetMap.getOrDefault("오락", 0L))
                             .cultureBudget(budgetMap.getOrDefault("문화", 0L))
@@ -172,17 +155,26 @@ public class GptServiceImpl implements GptService{
                 + "기타 카테고리는 " + monthlyAggregation.getMonthlyTotalOthersConsumption() + "원";
     }
 
-    public String gptAdvice(Long nowTotalConsumption, int consumptionPercent, int consumptionChangePercentage, String highestCategoryKey, Integer highestCategoryPercent) {
+    public String gptAdvice(Long nowTotalConsumption, int consumptionPercent, int consumptionChangePercentage, String highestCategoryKey, int highestCategoryPercent) {
         HttpClient client = HttpClient.newHttpClient();
         ObjectMapper mapper = new ObjectMapper();
 
         String changeDescription = getChangeDescription(consumptionChangePercentage);
 
-        String adviceDetails = "이번 달의 현재까지 쓴 소비량은 " + nowTotalConsumption + "원이고, "
-                + "총 소비량에 대한 예산에 비해 이번 달의 현재까지 쓴 소비량은 " + consumptionPercent + "%입니다. "
-                + changeDescription + " "
-                + "그리고 가장 많은 소비 카테고리는 " + highestCategoryKey + "이고, "
-                + "그 카테고리의 소비량은 예산 대비 " + highestCategoryPercent + "%";
+        String adviceDetails;
+        if(highestCategoryPercent == 999999){
+            adviceDetails = "이번 달의 현재까지 쓴 소비량은 " + nowTotalConsumption + "원이고, "
+                    + "총 소비량에 대한 예산에 비해 이번 달의 현재까지 쓴 소비량은 " + consumptionPercent + "%입니다. "
+                    + changeDescription + " "
+                    + "그리고 가장 많은 소비 카테고리는 " + highestCategoryKey + "이고, "
+                    + "그 카테고리의 소비량은 예산 대비 " + highestCategoryPercent + "%";
+        } else{
+            adviceDetails = "이번 달의 현재까지 쓴 소비량은 " + nowTotalConsumption + "원이고, "
+                    + "총 소비량에 대한 예산에 비해 이번 달의 현재까지 쓴 소비량은 " + consumptionPercent + "%입니다. "
+                    + changeDescription + " "
+                    + "그리고 가장 많은 소비 카테고리는 " + highestCategoryKey + "이고, "
+                    + "그 카테고리의 소비량은 예산 대비 " + highestCategoryPercent + "%";
+        }
         log.info("adviceDetails : "+adviceDetails);
 
         try {

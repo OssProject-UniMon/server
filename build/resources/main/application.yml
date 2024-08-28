@@ -25,14 +25,6 @@ server:
     key-store-type: PKCS12
     key-alias: spring
 
-# chatgpt
-openai:
-  model: gpt-3.5-turbo
-  api:
-    key: sk-Yag6zSyj5sYi3NJbX91Zun869YjhBe0ApbZhudKJwrT3BlbkFJmA7Q7uBB5WkYJV0T1Ot7rWAmuO_ttZxvhyGRL1O0QA
-    url: https://api.openai.com/v1/chat/completions
-
-
 
 
 ## 로컬에서 테스트 할 때  yml 설정 이걸로 변경
