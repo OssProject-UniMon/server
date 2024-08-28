@@ -61,7 +61,7 @@ jobs:
           port: 22  # SSH 포트 번호 (기본값 22)
           source: ./unimon.jar  # 로컬 파일 경로
           target: /home/ubuntu/unimon.jar  # 원격 서버에서의 경로
-          strip_components: 0  # 경로의 구성 요소를 유지 (압축된 경우 사용)
+          strip_components: 2  # 경로의 구성 요소를 유지 (압축된 경우 사용)
           overwrite: true  # 동일 이름의 파일을 덮어씁니다.
           rm: false  # 전송 후 원본 파일을 삭제하지 않음
           use_insecure_cipher: false  # 보안 강화를 위해 이 옵션은 비활성화
