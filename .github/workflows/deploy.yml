@@ -40,7 +40,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: unimon-jar
-          path: ./unimon.jar
+          path: build/libs/
 
       - name: Stop existing Java process
         uses: appleboy/ssh-action@master
