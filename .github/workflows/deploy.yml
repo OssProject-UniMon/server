@@ -39,11 +39,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: unimon
-          path: build/libs/
-
-      - name: Verify unimon.jar file exists
-        run: ls -l ./build/libs/unimon.jar
+          name: unimon-jar
+          path: ./unimon.jar
 
       - name: Stop existing Java process
         uses: appleboy/ssh-action@master
