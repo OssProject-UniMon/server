@@ -232,55 +232,18 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    // 카테고리 이름에 따라 MonthlyAggregation의 값을 가져오는 헬퍼 메소드
-    private Long getMonthlyCategoryAmountByCategoryName(MonthlyAggregation monthlyAggregation, String categoryName) {
-        switch (categoryName) {
-            case "오락":
-                return monthlyAggregation.getMonthlyTotalEntertainmentConsumption();
-            case "문화":
-                return monthlyAggregation.getMonthlyTotalCultureConsumption();
-            case "카페":
-                return monthlyAggregation.getMonthlyTotalCafeConsumption();
-            case "스포츠":
-                return monthlyAggregation.getMonthlyTotalSportsConsumption();
-            case "음식점":
-                return monthlyAggregation.getMonthlyTotalFoodConsumption();
-            case "숙박비":
-                return monthlyAggregation.getMonthlyTotalAccommodationConsumption();
-            case "잡화소매":
-                return monthlyAggregation.getMonthlyTotalRetailConsumption();
-            case "쇼핑":
-                return monthlyAggregation.getMonthlyTotalShoppingConsumption();
-            case "개인이체":
-                return monthlyAggregation.getMonthlyTotalTransferConsumption();
-            case "교통비":
-                return monthlyAggregation.getMonthlyTotalTransportationConsumption();
-            case "의료비":
-                return monthlyAggregation.getMonthlyTotalMedicalConsumption();
-            case "보험비":
-                return monthlyAggregation.getMonthlyTotalInsuranceConsumption();
-            case "구독/정기결제":
-                return monthlyAggregation.getMonthlyTotalSubConsumption();
-            case "교육비":
-                return monthlyAggregation.getMonthlyTotalEduConsumption();
-            case "모바일페이":
-                return monthlyAggregation.getMonthlyTotalMobileConsumption();
-            default: // 기타
-                return monthlyAggregation.getMonthlyTotalOthersConsumption();
-        }
-    }
-
     // 기존 nowSummaryPage 메소드
     @Transactional
     public ReportResSummaryDTO nowSummaryPage(Long userId, String date) {
+        log.info("[ReportService] nowSummaryPage");
         try {
+            log.info("date : " + date);
+
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저가 없습니다."));
 
             DailyConsumption dailyConsumption = dailyConsumptionRepository.findDailyConsumptionByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 일별 소비량이 없습니다."));
-
-            log.info("date : " + date);
 
             Report report = reportRepository.findReportByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 해당 월의 레포트가 없습니다."));
@@ -289,6 +252,8 @@ public class ReportServiceImpl implements ReportService {
 
             // 현재 달의 모든 소비량 데이터 조회
             List<CategoryConsumption> currentMonthConsumptions = categoryConsumptionRepository.findCategoryConsumptionByUserIdAndDay(userId, date);
+
+            log.info("currentMonthConsumptions " + currentMonthConsumptions);
 
             // 현재 달의 각 카테고리별 총 소비량 계산
             Map<String, Long> nowCategoryTotals = new HashMap<>();
@@ -310,6 +275,8 @@ public class ReportServiceImpl implements ReportService {
                 nowCategoryTotals.merge("모바일페이", consumption.getMobileConsumption(), Long::sum);
                 nowCategoryTotals.merge("기타", consumption.getOthersConsumption(), Long::sum);
             }
+
+            log.info("nowCategoryTotals " + nowCategoryTotals);
 
             // 최고 소비량 카테고리 찾기
             Map.Entry<String, Long> highestCategory = nowCategoryTotals.entrySet().stream()
@@ -344,18 +311,12 @@ public class ReportServiceImpl implements ReportService {
             log.info("highestCategoryPercentageChange  : " + highestCategoryPercentageChange);
             log.info("lowestCategoryPercentageChange  : " + lowestCategoryPercentageChange);
 
-            String gptAdvice = null;
-            // 현재 레포트에서 gptAdvice 가져오기
-            if (dailyConsumption.getIsLastConsumption()) {
-                gptAdvice = report.getAdvice();
-            }
-
             return ReportResSummaryDTO.builder()
                     .totalConsumption(user.getNowTotalConsumption()) // 이번 달의 현재까지 쓴 소비량
                     .percentageOfBudget(nowTotalConsumptionPercent(userId, date)) // 예산에 비해 소비량이 몇 %인지 계산한 결과 %
                     .lastConsumption(dailyConsumption.getIsLastConsumption()) // 저번 달의 소비량이 있는지 boolean
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
-                    .gptAdvice(gptAdvice)
+                    .gptAdvice(report.getAdvice())
                     .highestCategory(highestCategory.getKey())
                     .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
                     .lowestCategory(lowestCategory.getKey())
@@ -430,17 +391,12 @@ public class ReportServiceImpl implements ReportService {
             Integer highestCategoryPercentageChange = calculatePercentageChange(highestCategory.getValue(), lastMonthHighestCategoryAmount);
             Integer lowestCategoryPercentageChange = calculatePercentageChange(lowestCategory.getValue(), lastMonthLowestCategoryAmount);
 
-            String gptAdvice = null;
-            if (dailyConsumption.getIsLastConsumption()) {
-                gptAdvice = report.getAdvice();
-            }
-
             return ReportResSummaryDTO.builder()
                     .totalConsumption(monthlyAggregation.getMonthlyTotalConsumption()) // 지난 달의 현재까지 쓴 소비량
                     .percentageOfBudget(pastTotalConsumptionPercent(userId, date)) // 예산에 비해 소비량이 몇 %인지 계산한 결과 %
                     .lastConsumption(dailyConsumption.getIsLastConsumption()) // 저번 달의 소비량이 있는지 boolean
                     .percentageChange(dailyConsumption.getConsumptionChangePercentage()) // 저번 달의 동일한 날짜에 저장된 총 소비량과 비교하여 몇 % 증가/감소했는지에 대한 %
-                    .gptAdvice(gptAdvice)
+                    .gptAdvice(report.getAdvice())
                     .highestCategory(highestCategory.getKey())
                     .highestCategoryPercent((highestCategoryPercentageChange != null) ? highestCategoryPercentageChange : 999999) // null 체크 후 기본값 999999 할당
                     .lowestCategory(lowestCategory.getKey())
@@ -937,13 +893,16 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional
-    public Map<String, Double> categoryConsumptionPercent(Long userId, String date){
-        try{
-            log.info("userId : "+userId);
-            log.info("date : "+date);
-            CategoryConsumption categoryConsumption = categoryConsumptionRepository.findCategoryConsumptionByUserId(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("해당되는 유저가 없습니다."));
+    public Map<String, Double> categoryConsumptionPercent(Long userId, String date) {
+        log.info("[ReportService] categoryConsumptionPercent");
+        try {
+            log.info("userId : " + userId);
+            log.info("date : " + date);
 
+            // 유저의 해당 월 카테고리 소비 내역 가져오기
+            List<CategoryConsumption> categoryConsumptionList = categoryConsumptionRepository.findCategoryConsumptionsByUserIdAndMonth(userId, date);
+
+            // 유저의 해당 날짜의 레포트 가져오기
             Report report = reportRepository.findReportByUserIdAndDate(userId, date)
                     .orElseThrow(() -> new IllegalArgumentException("해당되는 유저의 레포트가 없습니다."));
 
@@ -951,24 +910,29 @@ public class ReportServiceImpl implements ReportService {
             Map<String, Double> result = new HashMap<>();
 
             // 각 카테고리별로 예산 대비 소비 비율 계산
-            calculateAndPutPercent(result, "오락", categoryConsumption.getEntertainmentConsumption(), report.getEntertainmentBudget());
-            calculateAndPutPercent(result, "문화", categoryConsumption.getCultureConsumption(), report.getCultureBudget());
-            calculateAndPutPercent(result, "카페", categoryConsumption.getCafeConsumption(), report.getCafeBudget());
-            calculateAndPutPercent(result, "스포츠", categoryConsumption.getSportsConsumption(), report.getSportsBudget());
-            calculateAndPutPercent(result, "음식점", categoryConsumption.getFoodConsumption(), report.getFoodBudget());
-            calculateAndPutPercent(result, "숙박비", categoryConsumption.getAccommodationConsumption(), report.getAccommodationBudget());
-            calculateAndPutPercent(result, "잡화소매", categoryConsumption.getRetailConsumption(), report.getRetailBudget());
-            calculateAndPutPercent(result, "쇼핑", categoryConsumption.getShoppingConsumption(), report.getShoppingBudget());
-            calculateAndPutPercent(result, "개인이체", categoryConsumption.getTransferConsumption(), report.getTransferBudget());
-            calculateAndPutPercent(result, "교통비", categoryConsumption.getTransportationConsumption(), report.getTransportationBudget());
-            calculateAndPutPercent(result, "의료비", categoryConsumption.getMedicalConsumption(), report.getMedicalBudget());
-            calculateAndPutPercent(result, "보험비", categoryConsumption.getInsuranceConsumption(), report.getInsuranceBudget());
-            calculateAndPutPercent(result, "구독/정기결제", categoryConsumption.getSubConsumption(), report.getSubBudget());
-            calculateAndPutPercent(result, "교육비", categoryConsumption.getEduConsumption(), report.getEduBudget());
-            calculateAndPutPercent(result, "모바일페이", categoryConsumption.getMobileConsumption(), report.getMobileBudget());
-            calculateAndPutPercent(result, "기타", categoryConsumption.getOthersConsumption(), report.getOthersBudget());
-            log.info("result : "+result);
+            for (CategoryConsumption categoryConsumption : categoryConsumptionList) {
+                calculateAndPutPercent(result, "오락", categoryConsumption.getEntertainmentConsumption(), report.getEntertainmentBudget());
+                calculateAndPutPercent(result, "문화", categoryConsumption.getCultureConsumption(), report.getCultureBudget());
+                calculateAndPutPercent(result, "카페", categoryConsumption.getCafeConsumption(), report.getCafeBudget());
+                calculateAndPutPercent(result, "스포츠", categoryConsumption.getSportsConsumption(), report.getSportsBudget());
+                calculateAndPutPercent(result, "음식점", categoryConsumption.getFoodConsumption(), report.getFoodBudget());
+                calculateAndPutPercent(result, "숙박비", categoryConsumption.getAccommodationConsumption(), report.getAccommodationBudget());
+                calculateAndPutPercent(result, "잡화소매", categoryConsumption.getRetailConsumption(), report.getRetailBudget());
+                calculateAndPutPercent(result, "쇼핑", categoryConsumption.getShoppingConsumption(), report.getShoppingBudget());
+                calculateAndPutPercent(result, "개인이체", categoryConsumption.getTransferConsumption(), report.getTransferBudget());
+                calculateAndPutPercent(result, "교통비", categoryConsumption.getTransportationConsumption(), report.getTransportationBudget());
+                calculateAndPutPercent(result, "의료비", categoryConsumption.getMedicalConsumption(), report.getMedicalBudget());
+                calculateAndPutPercent(result, "보험비", categoryConsumption.getInsuranceConsumption(), report.getInsuranceBudget());
+                calculateAndPutPercent(result, "구독/정기결제", categoryConsumption.getSubConsumption(), report.getSubBudget());
+                calculateAndPutPercent(result, "교육비", categoryConsumption.getEduConsumption(), report.getEduBudget());
+                calculateAndPutPercent(result, "모바일페이", categoryConsumption.getMobileConsumption(), report.getMobileBudget());
+                calculateAndPutPercent(result, "기타", categoryConsumption.getOthersConsumption(), report.getOthersBudget());
+            }
+
+            log.info("result : " + result);
             return result;
+
+
         } catch (Exception e) {
             log.error("[ReportService] categoryConsumptionPercent error : ", e);
             throw new RuntimeException(e);
