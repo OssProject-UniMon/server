@@ -40,7 +40,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: unimon
-          path: ./build/libs/
+          path: build/libs/
 
       - name: Verify unimon.jar file exists
         run: ls -l ./build/libs/unimon.jar
@@ -55,25 +55,21 @@ jobs:
           script: |
             screen -S javaserver -X quit || true
 
-      - name: Remove old unimon.jar
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          script: |
-            rm -f /home/ubuntu/unimon.jar
-
       - name: Upload new unimon.jar
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY }}
-          port: 22
-          source: ./build/libs/unimon.jar
-          target: /home/ubuntu/unimon.jar
+          key: ${{ secrets.EC2_KEY }}  # 개인 키를 사용
+          port: 22  # SSH 포트 번호 (기본값 22)
+          source: ./build/libs/unimon.jar  # 로컬 파일 경로
+          target: /home/${{ secrets.EC2_USER }}/unimon.jar  # 원격 서버에서의 경로
+          strip_components: 1  # 경로의 구성 요소를 유지 (압축된 경우 사용)
+          overwrite: true  # 동일 이름의 파일을 덮어씁니다.
+          rm: true  # 전송 후 원본 파일을 삭제하지 않음
+          use_insecure_cipher: false  # 보안 강화를 위해 이 옵션은 비활성화
+          timeout: 30s  # 파일 전송의 최대 시간
+          command_timeout: 10m  # 명령 실행의 최대 시간
 
       - name: Start new Java server in screen session
         uses: appleboy/ssh-action@master
